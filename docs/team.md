@@ -6,11 +6,11 @@ title:  Team
 # {{ page.title }}
 
 
-## USER 1
-***UCI Net ID***: ucinetid1
+## Kevin Fang
+***UCI Net ID***: kpfang
 
-## USER 2
-***UCI Net ID***: ucinetid2
+## Jacob Ouyang
+***UCI Net ID***: jnouyang
 
-## USER 3
-***UCI Net ID***: ucinetid3
+## Killian Weber
+***UCI Net ID***: kcweber

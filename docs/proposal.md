@@ -19,12 +19,9 @@ Things to consider:
 Possible applications could be having more interesting AI bots as enemies, as well as bots that are able to consider other agents in an adversarial environment.
 
 ## AI/ML algorithms
-We envision using several ML algorithms to implement this. The two most important subfields of ML used in this project will be RL and CV. 
 
-There are 3 main approaches that we are considering: a classification approach (image/video -> task), reinforcement learning (dqn, ddqn), and a multi-headed network.
 
-Regardless of approach, we would first need a feature extractor. Ideally, there would be a pretrained model for feature extraction based on some Minecraft task, but we could also use pretrained image/video networks (Resnet, I3D, etc.) and finetune them onto Minecraft.
-
+We envision using several ML algorithms to implement this: first we would an image/video classifier (image/video -> task) to extract features and then these features will be inputted into a multi-headed network comprised of reinforcement learning heads (dqn, ddqn).
 
 ### Image/Video -> Task 
 This is the most straightforward approach. This would be essentially a classification task (use Resnet/ I3D, etc.). We will start with training this first, then focus on implementing various reinforcement learning methods (DQN, DDQN, etc.).

@@ -11,7 +11,8 @@ Our project aims to create a multi-agent environment in Minecraft where agents a
 We plan to experiment with both image and video input. Video will be a stack of images to create a sense of history within the model. We will encourage agents to explore the world and have the world’s history be a factor in decision making.
 
 Things to consider:
-- Game balance -> how many weapons we want them to learn.
+- Item balance -> how many weapons we want them to learn.
+- World Balance -> Are there going to be obstacles within the generated world and if so how does it impact game balance as a whole.
 - World size -> we want to encourage aggression, and need each player to be within each other most of the time.
 - Number of agents -> start with 2 and move up.
 
@@ -42,7 +43,7 @@ We also need to decide if there are any intermediary rewards we would like to as
 ## Evaluation Plan
 It’s hard to assign concrete metrics in how well our task prediction model will work. Unlike chess, there are not established ELO criteria and established game knowledge that we can play off of. If we are able to find existing Minecraft PvP bots, we can use them as a point of comparison. If not, the performance of the final task prediction model will largely be anecdotal. However, for our hydranet architecture plan, we can use ground truth and evaluation metrics such as MSE, cross entropy, etc. to evaluate how well intermediary values perform.
 
-
+There are a few sanity cases we can use to verify that our project works. One such case is to have one area where an agent is pitted against an unresponsive character. The agent should be able to easily dispatch the unresponsive character showing that the agent understands how to fight. This case can be expanded to areas with more than one unresponsive character. Some moonshot cases would be an arena full of obstacles with any number of agents fighting each other at one time to see who would win.
 
 ## Appointment with the Instructor
 October 19, Tuesday, 2pm

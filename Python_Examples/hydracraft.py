@@ -112,49 +112,49 @@ class hydraCraft(gym.Env):
 
         return self.obs
 
-    def step(self, action, agent_host):
-        """
-        Take an action in the environment and return the results.
-
-        Args
-            action: <int> index of the action to take
-
-        Returns
-            observation: <np.array> flattened array of obseravtion
-            reward: <int> reward from taking action
-            done: <bool> indicates terminal state
-            info: <dict> dictionary of extra information
-        """
-
-        # Get Action
-        if action[-1] >= .5:
-            action[-1] = 1
-        else:
-            action[-1] = 0
-        command = action
-        if command[2] != 1 or self.allow_break_action:
-            agent_host.sendCommand("move " + command[0])
-            agent_host.sendCommand("turn " + command[1])
-            agent_host.sendCommand("attack " + command[2])
-            time.sleep(1)
-            self.episode_step += 1
-
-        # Get Observation
-        world_state = self.agent_hosts.getWorldState()
-        for error in world_state.errors:
-            print("Error:", error.text)
-        self.obs, self.allow_break_action = self.get_observation(world_state)
-
-        # Get Done
-        done = not world_state.is_mission_running
-
-        # Get Reward
-        reward = 0
-        for r in world_state.rewards:
-            reward += r.getValue()
-        self.episode_return += reward
-
-        return self.obs, reward, done, dict()
+    # def step(self, action, agent_host):
+    #     """
+    #     Take an action in the environment and return the results.
+    #
+    #     Args
+    #         action: <int> index of the action to take
+    #
+    #     Returns
+    #         observation: <np.array> flattened array of obseravtion
+    #         reward: <int> reward from taking action
+    #         done: <bool> indicates terminal state
+    #         info: <dict> dictionary of extra information
+    #     """
+    #
+    #     # Get Action
+    #     if action[-1] >= .5:
+    #         action[-1] = 1
+    #     else:
+    #         action[-1] = 0
+    #     command = action
+    #     if command[2] != 1 or self.allow_break_action:
+    #         agent_host.sendCommand("move " + command[0])
+    #         agent_host.sendCommand("turn " + command[1])
+    #         agent_host.sendCommand("attack " + command[2])
+    #         time.sleep(1)
+    #         self.episode_step += 1
+    #
+    #     # Get Observation
+    #     world_state = self.agent_hosts.getWorldState()
+    #     for error in world_state.errors:
+    #         print("Error:", error.text)
+    #     self.obs, self.allow_break_action = self.get_observation(world_state)
+    #
+    #     # Get Done
+    #     done = not world_state.is_mission_running
+    #
+    #     # Get Reward
+    #     reward = 0
+    #     for r in world_state.rewards:
+    #         reward += r.getValue()
+    #     self.episode_return += reward
+    #
+    #     return self.obs, reward, done, dict()
 
     def get_mission_xml(self, reset):
         # Set up the Mission XML:
@@ -214,28 +214,11 @@ class hydraCraft(gym.Env):
                 </AgentHandlers>
               </AgentSection>'''
 
-        # Add a section for the observer. Observer runs in creative mode.
-
-        #xml += '''<AgentSection mode="Creative">
-        #        <Name>TheWatcher</Name>
-        #        <AgentStart>
-        #          <Placement x="0.5" y="28" z="0.5" pitch="90"/>
-        #        </AgentStart>
-        #        <AgentHandlers>
-        #          <ContinuousMovementCommands turnSpeedDegs="360"/>
-        #          <MissionQuitCommands/>
-        #          <VideoProducer>
-        #            <Width>640</Width>
-        #            <Height>640</Height>
-        #          </VideoProducer>
-        #        </AgentHandlers>
-        #      </AgentSection>'''
-
         xml += '</Mission>'
         return xml
 
     def agentName(self, i):
-        return "Robot#" + str(i + 1)
+        return "Agent_" + str(i + 1)
 
     def safeStartMission(self, agent_host, my_mission, my_client_pool, my_mission_record, role, expId):
         used_attempts = 0
@@ -341,6 +324,7 @@ class hydraCraft(gym.Env):
                 for i in range(self.num_agents):
                     agent = self.agent_hosts[i]
                     world_state = agent.getWorldState()
+                    obs = self.get_observation(world_state, i)
                     ################################
                     ####                        ####
                     #### This is Where Steps Go ####
@@ -374,9 +358,9 @@ class hydraCraft(gym.Env):
                     if world_state.is_mission_running:
                         hasEnded = False  # all not good
 
-    def get_observation(self, world_state):
+    def get_observation(self, world_state, i):
         """
-        Use the agent observation API to get a flattened 2 x 5 x 5 grid around the agent.
+        Use the agent observation API to get a flattened grid around the agent.
         The agent is in the center square facing up.
 
         Args
@@ -391,7 +375,7 @@ class hydraCraft(gym.Env):
 
         while world_state.is_mission_running:
             time.sleep(0.1)
-            world_state = self.agent_hosts.getWorldState()
+            world_state = self.agent_hosts[i].getWorldState()
             if len(world_state.errors) > 0:
                 raise AssertionError('Could not load grid.')
 
@@ -401,7 +385,7 @@ class hydraCraft(gym.Env):
                 observations = json.loads(msg)
 
                 # Get observation
-                grid = observations['floorAll']
+                grid = observations
                 for i, x in enumerate(grid):
                     obs[i] = x == 'diamond_ore' or x == 'lava'
 

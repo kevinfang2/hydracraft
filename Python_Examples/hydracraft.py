@@ -26,6 +26,8 @@ try:
 except:
     import MalmoPython
 from builtins import range
+from past.utils import old_div
+import math
 import os
 import random
 import sys
@@ -41,6 +43,7 @@ import gym, ray
 from gym.spaces import Discrete, Box
 from ray.rllib.agents import ppo
 
+EntityInfo = namedtuple('EntityInfo', 'x, y, z, name')
 
 class hydraCraft(gym.Env):
 
@@ -199,7 +202,7 @@ class hydraCraft(gym.Env):
                   <Placement x="''' + str(random.randint(-17, 17)) + '''" y="2" z="''' + str(
                 random.randint(-17, 17)) + '''"/>
                   <Inventory>
-                    <InventoryObject type="wooden_pickaxe" slot="0" quantity="1"/>
+                    <InventoryObject type="diamond_sword" slot="0" quantity="1"/>
                   </Inventory>
                 </AgentStart>
                 <AgentHandlers>
@@ -278,6 +281,59 @@ class hydraCraft(gym.Env):
         print()
         print("Mission has started.")
 
+    def calcTurnValue(self, us, them, current_yaw):
+        ''' Calc turn speed required to steer "us" towards "them".'''
+        dx = them[0] - us[0]
+        dz = them[1] - us[1]
+        yaw = -180 * math.atan2(dx, dz) / math.pi
+        difference = yaw - current_yaw
+        while difference < -180:
+            difference += 360;
+        while difference > 180:
+            difference -= 360;
+        difference /= 180.0;
+        return difference
+
+    def getVelocity(self, this_agent, entities, current_yaw, current_pos, current_health):
+        ''' Calculate a good velocity to head in, according to the entities around us.'''
+        # Get all the points of interest (every entity apart from the robots)
+        poi = [ent for ent in entities]
+        if len(poi) == 0:
+            return 0, 0  # Nothing around, so just stand still.
+
+        # Get position of all zombies
+        players = [ent for ent in poi if ent.name != this_agent]
+
+        # Useful lambdas:
+        distance = lambda entA, entB: abs(entA.x - entB.x) + abs(entA.y - entB.y) + abs(entA.z - entB.z)
+        proximity_score = lambda target, entities: sum(
+            [old_div(1.0, (1 + distance(target, ent) * distance(target, ent))) for ent in entities if
+             not ent == target])
+
+        # Now, score each poi to find the one we most want to visit.
+        scores = []
+        for ent in players:
+            dist_from_us = abs(ent.x - current_pos[0]) + abs(ent.z - current_pos[1])
+            dist_score = old_div(1.0, (1 + dist_from_us * dist_from_us))
+            proximity = proximity_score(ent, players)
+            if proximity == 0:
+                proximity = 1  # Happens if there are no more zombies left.
+            turn_distance = abs(self.calcTurnValue(current_pos, (ent.x, ent.z), current_yaw))
+            scores.append(dist_score * proximity * (1 - turn_distance) * (1 - turn_distance))
+
+        # Pick the best-scoring entity:
+        i = scores.index(max(scores))
+        ent = players[i]
+        # Turn value to head towards it:
+        turn = self.calcTurnValue(current_pos, (ent.x, ent.z), current_yaw)
+        # Calculate a speed to use - helps to avoid orbiting:
+        dx = ent.x - current_pos[0]
+        dz = ent.z - current_pos[1]
+        speed = 1.0 - (old_div(1.0, (1.0 + abs(old_div(dx, 3.0)) + abs(old_div(dz, 3.0)))))
+        if abs(dx) + abs(dz) < 1.5:
+            speed = 0
+        return turn, speed
+
     def init_malmo(self):
         """
         Initialize new malmo mission.
@@ -287,7 +343,8 @@ class hydraCraft(gym.Env):
         for x in range(10000, 10000 + self.num_agents):
             client_pool.add(MalmoPython.ClientInfo('127.0.0.1', x))
        # return world_state
-
+            player_kill_scores = [0 for x in range(self.num_agents)]
+            survival_scores = [0 for x in range(self.num_agents)]
         for mission_no in range(1, 30000):
             print("Running mission #" + str(mission_no))
             # Create mission xml - use forcereset if this is the first mission.
@@ -315,6 +372,9 @@ class hydraCraft(gym.Env):
             self.safeWaitForStart(self.agent_hosts)
 
             time.sleep(1)
+            current_yaw = [0 for x in range(self.num_agents)]
+            current_pos = [(0, 0) for x in range(self.num_agents)]
+            current_life = [20 for x in range(self.num_agents)]
             unresponsive_count = [10 for x in range(self.num_agents)]
             num_responsive_agents = lambda: sum([urc > 0 for urc in unresponsive_count])
 
@@ -330,6 +390,36 @@ class hydraCraft(gym.Env):
                     #### This is Where Steps Go ####
                     ####                        ####
                     ################################
+                    if world_state.is_mission_running == False:
+                        timed_out = True
+                    if world_state.is_mission_running and world_state.number_of_observations_since_last_state > 0:
+                        unresponsive_count[i] = 10
+                        msg = world_state.observations[-1].text
+                        ob = json.loads(msg)
+                        if "Yaw" in ob:
+                            current_yaw[i] = ob[u'Yaw']
+                        if "Life" in ob:
+                            life = ob[u'Life']
+                            if life != current_life[i]:
+                                current_life[i] = life
+                        if "PlayersKilled" in ob:
+                            player_kill_scores[i] = ob[u'PlayersKilled']
+                        if "XPos" in ob and "ZPos" in ob:
+                            current_pos[i] = (ob[u'XPos'], ob[u'ZPos'])
+                        if "entities" in ob:
+                            entities = [EntityInfo(k["x"], k["y"], k["z"], k["name"]) for k in ob["entities"]]
+                            turn, speed = self.getVelocity(self.agentName(i), entities, current_yaw[i], current_pos[i],
+                                                      current_life[i])
+                            agent.sendCommand("move " + str(speed))
+                            agent.sendCommand("turn " + str(turn))
+                        if u'LineOfSight' in ob:
+                            los = ob[u'LineOfSight']
+                            if los[u'hitType'] == "entity" and los[u'inRange']:
+                                agent.sendCommand("attack 1")
+                                agent.sendCommand("attack 0")
+                    elif world_state.number_of_observations_since_last_state == 0:
+                        unresponsive_count[i] -= 1
+
                 time.sleep(0.05)
             print()
 
@@ -343,7 +433,7 @@ class hydraCraft(gym.Env):
                 for i in range(self.num_agents):
                     if unresponsive_count[i] > 0:
                         print("SURVIVOR: " + self.agentName(i))
-                        self.survival_scores[i] += 1
+                        survival_scores[i] += 1
 
             print("Waiting for mission to end ", end=' ')
             # Mission should have ended already, but we want to wait until all the various agent hosts
@@ -353,8 +443,8 @@ class hydraCraft(gym.Env):
                 hasEnded = True  # assume all good
                 print(".", end="")
                 time.sleep(0.1)
-                for ah in self.agent_hosts:
-                    world_state = ah.getWorldState()
+                for agent in self.agent_hosts:
+                    world_state = agent.getWorldState()
                     if world_state.is_mission_running:
                         hasEnded = False  # all not good
 
@@ -399,8 +489,6 @@ class hydraCraft(gym.Env):
                 elif yaw >= 45 and yaw < 135:
                     obs = np.rot90(obs, k=3, axes=(1, 2))
                 obs = obs.flatten()
-
-                allow_break_action = observations['LineOfSight']['type'] == 'diamond_ore'
 
                 break
 

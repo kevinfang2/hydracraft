@@ -71,8 +71,8 @@ if agent_hosts[0].receivedArgument("help"):
     exit(0)
 
 DEBUG = agent_hosts[0].receivedArgument("debug")
-INTEGRATION_TEST_MODE = agent_hosts[0].receivedArgument("test")
 
+INTEGRATION_TEST_MODE = agent_hosts[0].receivedArgument("test")
 agent_hosts += [MalmoPython.AgentHost() for x in range(1, NUM_AGENTS) ]
 print(agent_hosts)
 
@@ -231,14 +231,14 @@ for i in range(len(agent_hosts)):
 
 safeWaitForStart(agent_hosts)
 
-bots = [basic.BasicBot() for _ in range(NUM_AGENTS)]
+bots = [basic.BasicBot(agent_hosts[i]) for i in range(NUM_AGENTS)]
 while(True):
     for i in range(NUM_AGENTS):
         agent_hosts[i].sendCommand("move 0.25")
         world_state = agent_hosts[i].getWorldState()
 
         if world_state.is_mission_running:
-            bots[i].step(agent_hosts[i])
+            bots[i].step()
         # print("got here with ", i)
         # BB.run(agent_hosts[i])
         # ah = agent_hosts[i]

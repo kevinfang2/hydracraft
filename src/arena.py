@@ -7,6 +7,7 @@ TRACK_HEIGHT = 30
 TIMELIMIT = 25000
 WEAPON_MAPPING = {}
 WEAPONS = {}
+obs_size = 30
 
 def getWeapon(agentName):
     '''Returns the weapon of agent
@@ -83,6 +84,13 @@ def create_mission(agent_info, trackw=TRACK_WIDTH, trackb=TRACK_BREADTH, trackh=
           <RewardForCollectingItem>
             <Item type="apple" reward="1"/>
           </RewardForCollectingItem>
+          
+          <ObservationFromGrid>
+            <Grid name="floorAll">
+                <min x="-'''+str(int(obs_size/2))+'''" y="-1" z="-'''+str(int(obs_size/2))+'''"/>
+                <max x="'''+str(int(obs_size/2))+'''" y="0" z="'''+str(int(obs_size/2))+'''"/>
+            </Grid>
+          </ObservationFromGrid>
           <ObservationFromNearbyEntities>
             <Range name="entities" xrange="40" yrange="2" zrange="40"/>
           </ObservationFromNearbyEntities>

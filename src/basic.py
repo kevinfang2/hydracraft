@@ -43,6 +43,8 @@ class BasicBot:
                     continue
                 # Get observation
                 grid = observations['floorAll']
+                for i, x in enumerate(grid):
+                    obs[i] = x == 'bedrock'
 
                 # Rotate observation with orientation of agent
                 obs = obs.reshape((2, self.obs_size, self.obs_size))
@@ -74,31 +76,33 @@ class BasicBot:
             '''
             # print("??")
             grid = self.get_observation(world_state)
-            # print(ob['entities'], ob['XPos'], ob['YPos'])
+
 
             xPos = ob['XPos']
             yPos = ob['YPos']
             zPos = ob['ZPos']
             yaw = ob['Yaw']
             pitch = ob['Pitch']
-            target = self.getNextTarget(ob['entities'])
+
+            for t in ob['entities']:
+                grid[1, int(t['y']), int(t['x'])] = 99
+
+            # 0 is air, 1 is obstacle, 99 is enemy
 
 
-            print(target)
-
-            if target == None: # No enemies nearby
-                if target != None:
-                    sys.stdout.write("Not found: "+target['name'] + "\n")
-                self.agent_host.sendCommand("move 0") # stop moving
-                self.agent_host.sendCommand("attack 0") # stop attacking
-                self.agent_host.sendCommand("turn 0") # stop turning
-                self.agent_host.sendCommand("pitch 0") # stop looking up/down
-            else:# enemy nearby, kill kill kill
-                deltaYaw = 5
-                deltaPitch = 5
-                self.agent_host.sendCommand("turn " + str(deltaYaw))
-                self.agent_host.sendCommand("pitch " + str(deltaPitch))
-                self.agent_host.sendCommand("attack 1")
+            # if target == None: # No enemies nearby
+            #     if target != None:
+            #         sys.stdout.write("Not found: "+target['name'] + "\n")
+            #     self.agent_host.sendCommand("move 0") # stop moving
+            #     self.agent_host.sendCommand("attack 0") # stop attacking
+            #     self.agent_host.sendCommand("turn 0") # stop turning
+            #     self.agent_host.sendCommand("pitch 0") # stop looking up/down
+            # else:# enemy nearby, kill kill kill
+            #     deltaYaw = 5
+            #     deltaPitch = 5
+            #     self.agent_host.sendCommand("turn " + str(deltaYaw))
+            #     self.agent_host.sendCommand("pitch " + str(deltaPitch))
+            #     self.agent_host.sendCommand("attack 1")
 
         for error in world_state.errors:
             print("Error:", error.text)

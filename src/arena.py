@@ -7,8 +7,12 @@ TRACK_HEIGHT = 30
 TIMELIMIT = 25000
 WEAPON_MAPPING = {}
 WEAPONS = {}
-DENSITY = 0.2
+DENSITY = 0
 obs_size = 30
+Positions = ["x='15' y='2' z='0'",
+             "x='-15' y='2' z='0'",
+             "x='0' y='2' z='15'",
+             "x='0' y='2' z='-15'"]
 
 def getWeapon(agentName):
     '''Returns the weapon of agent
@@ -70,19 +74,19 @@ def create_mission(agent_info, trackw=TRACK_WIDTH, trackb=TRACK_BREADTH, trackh=
                 </ServerHandlers>
             </ServerSection>
     '''
-
+    # The Position implementation will easily break, a better implementation is suggested
     for name,weapon in agent_info.items():
         missionXML += '''<AgentSection mode="Survival">
         <Name>''' + name + '''</Name>
         <AgentStart>
-          <Placement x="''' + str(random.randint(-17,17)) + '''" y="2" z="''' + str(random.randint(-17,17)) + '''"/>
+          <Placement '''+ Positions[int(name[-1])-1]+'''/>
             <Inventory>
           '''
         if(weapon == 0):
             missionXML += '''<InventoryObject slot="0" type="wooden_sword" quantity="1"/>'''
         else:
-            missionXML += '''<InventoryObject slot="1" type="bow" quantity="1"/>
-                <InventoryObject slot="2" type="arrow" quantity="64"/>'''
+            missionXML += '''<InventoryObject slot="0" type="bow" quantity="1"/>
+                <InventoryObject slot="1" type="arrow" quantity="64"/>'''
         
         missionXML += '''
           </Inventory>

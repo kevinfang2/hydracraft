@@ -22,25 +22,19 @@ from __future__ import division
 # Test of multi-agent missions - runs a number of agents in a shared environment.
 
 from builtins import range
-from past.utils import old_div
 try:
     import MalmoPython
 except:
     import malmo.MalmoPython as MalmoPython
-import json
-import logging
-import math
 import os
-import random
 import sys
 import time
-import re
 import uuid
 from collections import namedtuple
-from operator import add
 
 import arena
 import basic
+#from multi_agent_test import safeStartMission, safeWaitForStart
 
 # 0 is sword, 1 is bow
 AGENT_INFO = {
@@ -147,72 +141,6 @@ def safeWaitForStart(agent_hosts):
         exit(1)
     print()
     print("Mission has started.")
-
-
-
-def getXML():
-    # Set up the Mission XML:
-    xml = '''<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
-    <Mission xmlns="http://ProjectMalmo.microsoft.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-      <About>
-        <Summary/>
-      </About>
-      <ModSettings>
-        <MsPerTick>50</MsPerTick>
-      </ModSettings>
-            <ServerSection>
-                        <ServerInitialConditions>
-                            <Time>
-                                <StartTime>12000</StartTime>
-                                <AllowPassageOfTime>false</AllowPassageOfTime>
-                            </Time>
-                            <Weather>clear</Weather>
-                        </ServerInitialConditions>
-                        <ServerHandlers>
-                            <FlatWorldGenerator generatorString="3;7,2;1;"/>
-                            <DrawingDecorator>''' + \
-          "<DrawCuboid x1='{}' x2='{}' y1='2' y2='2' z1='{}' z2='{}' type='air'/>".format(-50, 50,
-                                                                                          -50, 50) + \
-          "<DrawCuboid x1='{}' x2='{}' y1='1' y2='1' z1='{}' z2='{}' type='stone'/>".format(-50, 50,
-                                                                                            -50,
-                                                                                            50) + \
-          '''<DrawBlock x='0'  y='2' z='0' type='air' />
-                           <DrawBlock x='0'  y='1' z='0' type='stone' />
-                       </DrawingDecorator>
-                       <ServerQuitWhenAnyAgentFinishes/>
-                   </ServerHandlers>
-               </ServerSection>
-'''
-
-    # Add an agent section for each robot. Robots run in survival mode.
-    # Give each one a wooden pickaxe for protection...
-
-    for i in range(NUM_AGENTS):
-        xml += '''<AgentSection mode="Survival">
-        <Name>''' + agentName(i) + '''</Name>
-        <AgentStart>
-          <Placement x="''' + str(random.randint(-17,17)) + '''" y="2" z="''' + str(random.randint(-17,17)) + '''"/>
-          <Inventory>
-            <InventoryObject type="wooden_pickaxe" slot="0" quantity="1"/>
-          </Inventory>
-        </AgentStart>
-        <AgentHandlers>
-          <ContinuousMovementCommands turnSpeedDegs="360"/>
-          <ChatCommands/>
-          <MissionQuitCommands/>
-          <RewardForCollectingItem>
-            <Item type="apple" reward="1"/>
-          </RewardForCollectingItem>
-          <ObservationFromNearbyEntities>
-            <Range name="entities" xrange="40" yrange="2" zrange="40"/>
-          </ObservationFromNearbyEntities>
-          <ObservationFromRay/>
-          <ObservationFromFullStats/>
-        </AgentHandlers>
-      </AgentSection>'''
-
-    xml += '</Mission>'
-    return xml
 
 client_pool = MalmoPython.ClientPool()
 for x in range(10000, 10000 + NUM_AGENTS + 1):

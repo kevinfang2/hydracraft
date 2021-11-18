@@ -1,3 +1,7 @@
+malmoRL/weights
+malmoRL/mission_records
+*.tgz
+*.pyc
 
 */__pycache__/*
 

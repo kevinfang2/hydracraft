@@ -62,6 +62,13 @@ class BasicBot:
         return obs
 
 
+    def calc_reward(self, healthDelta, damageDelta):
+        reward = 0
+        reward += damageDelta * 15
+        reward += healthDelta * 10
+        return -10 if reward == 0 else reward
+
+
     def step(self):
         time.sleep(0.1)
         world_state = self.agent_host.getWorldState()

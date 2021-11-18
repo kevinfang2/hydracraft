@@ -16,7 +16,7 @@ class Classroom(Mission):
     def get_mission_xml(self):
         mission_name = 'classroom'
         agent_names = ['Agent_1']
-        self.NUM_MOBS = 10
+        self.NUM_MOBS = 200
         
         DENSITY = 0.1
 
@@ -31,11 +31,22 @@ class Classroom(Mission):
 
         def stones():
             stone = ''
-            for i in range(50):
-                for j in range(50):
+            for i in range(-18,18):
+                for j in range(-18,18):
                     if random.randint(0,100)/100. < DENSITY:
-                        stone +="<DrawBlock x='%s'  y='2' z='%s' type='bedrock' />"%(i-25,j-25)
+                        stone +="<DrawBlock x='%s'  y='2' z='%s' type='bedrock' />"%(i,j)
             return stone
+
+        def drawFence():
+            fence = ''
+            for i in range(-20,21):
+                for j in range(-20,21):
+                    for z in range(1,4):
+                        fence += "<DrawBlock x='20' y='{}' z='{}' type='fence'/>".format(z,i)
+                        fence += "<DrawBlock x='-20' y='{}' z='{}' type='fence'/>".format(z,i)
+                        fence += "<DrawBlock x='{}' y='{}' z='20' type='fence'/>".format(i,z)
+                        fence += "<DrawBlock x='{}' y='{}' z='-20' type='fence'/>".format(i,z)
+            return fence
             
         mission_xml='''<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
             <Mission xmlns="http://ProjectMalmo.microsoft.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
@@ -47,24 +58,28 @@ class Classroom(Mission):
                 <MsPerTick>50</MsPerTick>
               </ModSettings>
               <ServerSection>
+              
                 <ServerInitialConditions>
                     <Time>
                         <StartTime>18000</StartTime>
-                           <AllowPassageOfTime>false</AllowPassageOfTime>
-                        </Time>
+                       <AllowPassageOfTime>false</AllowPassageOfTime>
+                    </Time>
+                    <Weather>clear</Weather>
                     <AllowSpawning>false</AllowSpawning>
                 </ServerInitialConditions>
                 <ServerHandlers>
                   <FlatWorldGenerator generatorString="3;7,2;1;"/>
                   <DrawingDecorator>''' + \
-                      "<DrawCuboid x1='{}' x2='{}' y1='2' y2='2' z1='{}' z2='{}' type='air'/>".format(-50, 50,
-                                                                                        -50, 50) + \
-                      "<DrawCuboid x1='{}' x2='{}' y1='1' y2='1' z1='{}' z2='{}' type='stone'/>".format(-50, 50,
-                                                                                          -50,
-                                                                                          50) + \
+                      "<DrawCuboid x1='{}' x2='{}' y1='2' y2='2' z1='{}' z2='{}' type='air'/>".format(-20, 20,
+                                                                                        -20, 20) + \
+                      "<DrawCuboid x1='{}' x2='{}' y1='1' y2='1' z1='{}' z2='{}' type='stone'/>".format(-20, 20,
+                                                                                          -20,
+                                                                                          20) + \
                       stones() +\
                       drawMobs() + \
+                      drawFence() + \
                       '''
+
                       <DrawBlock x='0'  y='2' z='0' type='air' />
                       <DrawBlock x='0'  y='1' z='0' type='stone' />
                   </DrawingDecorator>
@@ -82,15 +97,14 @@ class Classroom(Mission):
             mission_xml += '''<AgentSection mode="Survival">
                 <Name>''' + agent_names[i] + '''</Name>
                 <AgentStart>
-                  <Placement x="''' + str(random.randint(-17, 17)) + '''" y="2" z="''' + str(
-                random.randint(-17, 17)) + '''"/>
+                  <Placement x="0" y="2" z="0"/>
                     <Inventory>
                 '''
-            if(weapon == 0):
-                mission_xml += '''<InventoryObject slot="0" type="wooden_sword" quantity="1"/>'''
-            else:
-                mission_xml += '''<InventoryObject slot="0" type="bow" quantity="1"/>
-                    <InventoryObject slot="1" type="arrow" quantity="64"/>'''
+            # if(weapon == 0):
+            mission_xml += '''<InventoryObject slot="0" type="wooden_sword" quantity="1"/>'''
+            # else:
+                # mission_xml += '''<InventoryObject slot="0" type="bow" quantity="1"/>
+                    # <InventoryObject slot="1" type="arrow" quantity="64"/>'''
                 
             mission_xml += '''
                 </Inventory>
@@ -101,14 +115,7 @@ class Classroom(Mission):
                   <Height>512</Height>
                 </VideoProducer>
                 <ObservationFromFullStats/>
-                <ContinuousMovementCommands turnSpeedDegs="45">
-                    <ModifierList type="deny-list">
-                      <command>attack</command>
-                    </ModifierList>
-                </ContinuousMovementCommands>
-                <RewardForCollectingItem>
-                  <Item type="apple" reward="10"/>
-                </RewardForCollectingItem>
+                <ContinuousMovementCommands turnSpeedDegs="45" />
                 <RewardForTimeTaken initialReward="0" delta="1" density="PER_TICK"/>
                 <RewardForDamagingEntity>
                 <Mob type="Zombie" reward="1"/>
@@ -118,6 +125,7 @@ class Classroom(Mission):
             </AgentSection>'''
 
         mission_xml += '''</Mission>'''
+
         return mission_xml
 
 

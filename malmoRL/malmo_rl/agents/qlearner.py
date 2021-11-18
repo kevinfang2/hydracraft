@@ -66,7 +66,7 @@ class QLearner(BaseAgent):
         self.processor = MalmoProcessor(self.grayscale, self.window_length, self.recurrent, self.abs_max_reward)
         self.agent = DQNAgent(model=self.model, nb_actions=self.nb_actions, policy=self.policy, test_policy=self.policy,
                               memory=self.memory, batch_size=self.batch_size, processor=self.processor,
-                              nb_steps_warmup=50000, gamma=.99, target_model_update=10000, enable_double_dqn=True,
+                              nb_steps_warmup=50000, gamma=.99, target_model_update=1000, enable_double_dqn=True,
                               enable_dueling_network=True)
         self.agent.compile(Adam(lr=.00025), metrics=['mae'])
 
@@ -75,9 +75,9 @@ class QLearner(BaseAgent):
         if not os.path.exists(weights_dir):
             os.makedirs(weights_dir)
         weights_path = os.path.join(weights_dir, '{}'.format(self.name))
-        callbacks = [ModelIntervalCheckpoint(weights_path, interval=10000, verbose=1)]
+        callbacks = [ModelIntervalCheckpoint(weights_path, interval=1000, verbose=1)]
         print(nb_steps)
-        self.agent.fit(env, nb_steps, action_repetition=4, callbacks=callbacks, verbose=1, log_interval=10000)
+        self.agent.fit(env, nb_steps, action_repetition=4, callbacks=callbacks, verbose=1, log_interval=1000)
                     #    test_interval=10000, test_nb_episodes=10, test_action_repetition=4, test_visualize=False)
 
     def test(self, env, nb_episodes):

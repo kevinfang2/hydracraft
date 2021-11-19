@@ -51,7 +51,7 @@ AGENT_INFO = {
 }
 NUM_AGENTS = len(AGENT_INFO)
 
-ARENA_SIZE = 31
+ARENA_SIZE = 11
 ARENA_HEIGHT = 2
 
 
@@ -91,7 +91,9 @@ class environment(MultiAgentEnv):
         self.bots += [basic.BasicBot(self.agent_hosts[x], "robot"+str(x+1)) for x in range(len(self.agent_hosts))]
         self.obs = None
         self.episode_step = 0
-        self.episode_return = 0
+        self.episode_return = {}
+        for i in range(NUM_AGENTS):
+            self.episode_return["robot"+str(i+1)] = 0
         self.returns = []
         self.steps = []
 
@@ -102,7 +104,9 @@ class environment(MultiAgentEnv):
         self.returns.append(self.episode_return)
         current_step = self.steps[-1] if len(self.steps) > 0 else 0
         self.steps.append(current_step + self.episode_step)
-        self.episode_return = 0
+        self.episode_return = {}
+        for i in range(NUM_AGENTS):
+            self.episode_return["robot" + str(i + 1)] = 0
         self.episode_step = 0
 
         # Log
@@ -124,12 +128,19 @@ class environment(MultiAgentEnv):
         done = {}
         extra = {}
         for i in range(len(self.bots)):
-            self.obs["robot" + str(i + 1)], reward["robot" + str(i + 1)], done["robot" + str(i + 1)], extra["robot" + str(i + 1)] = self.bots[i].step(action[self.bots[i].name])
-            pass
-        finished = True
+            try:
+                self.obs["robot" + str(i + 1)], reward["robot" + str(i + 1)], done["robot" + str(i + 1)], extra[
+                    "robot" + str(i + 1)] = self.bots[i].step(action[self.bots[i].name])
+                self.episode_return["robot" + str(i + 1)] += reward["robot" + str(i + 1)]
+                pass
+            except:
+                pass
+        finished = len(done) == NUM_AGENTS or len(done) == 0
         for i in done:
             finished = finished and done[i]
         done["__all__"] = finished
+        if finished:
+            print("END", self.episode_return)
         return  self.obs, reward, done, extra
 
     def safeStartMission(self, agent_host, my_mission, my_client_pool, my_mission_record, role, expId):

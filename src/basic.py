@@ -34,7 +34,7 @@ class BasicBot():
     """BasicBot will be given an AgentHost in its run method and just track down & attack various enemies"""
     def __init__(self, agent_host, name):
         self.name = name
-        self.obs_size = 31
+        self.obs_size = 11
         self.agent_host = agent_host
         self.action_space = gym.spaces.Box(low=np.array([-1.0, -1.0, 0.0]), high=np.array([1.0, 1.0, 1.0]),
                                            dtype=np.float32)
@@ -78,15 +78,17 @@ class BasicBot():
                 for i, x in enumerate(grid):
                     if x == 'air':
                         obs[i] = 0
+                    if x == 'stone':
+                        obs[i] = 1
                 # Rotate observation with orientation of agent
                 obs = obs.reshape((2, self.obs_size, self.obs_size))
-                xpos= self.obs_size //2 + 1
-                zpos= self.obs_size //2 + 1
+                xpos= self.obs_size //2
+                zpos= self.obs_size //2
 
                 for i , x in enumerate(observations['entities']):
                     if x['name'] != self.name:
                         cords = (int(x['y'])-1, xpos + int(x['x'])-1, zpos +int(x['z'])-1)
-                        if max(cords) <= 30 and min(cords) >= 0:
+                        if max(cords) < self.obs_size and min(cords) >= 0:
                             obs[int(x['y'])-1, xpos + int(x['x'])-1, zpos +int(x['z'])-1] = 99
                 yaw = observations['Yaw']
                 if yaw >= 225 and yaw < 315:
@@ -150,7 +152,7 @@ class BasicBot():
             for r in world_state.rewards:
                 reward += r.getValue()
             reward = (20-ob['entities'][1]['life'])/2 *0.1
-            self.episode_return = reward
+            self.episode_return += reward
             print(self.episode_return)
             return self.obs, reward, done, dict()
             # 0 is air, 1 is obstacle, 99 is enemy
@@ -182,6 +184,7 @@ class BasicBot():
         """
         # Reset Malmo
         world_state = self.agent_host.getWorldState()
+        self.episode_step = 0
         self.agent_host.sendCommand('chat /enchant ' + self.name + ' unbreaking 3')
         if AGENT_INFO[self.name] == 1:
             self.agent_host.sendCommand('chat /enchant '+self.name+' infinity 1')

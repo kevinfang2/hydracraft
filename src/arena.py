@@ -5,15 +5,15 @@ TRACK_WIDTH = 30
 TRACK_BREADTH = 30
 TRACK_HEIGHT = 30
 TIMELIMIT = 25000
-MAX_COMMANDS = 250
+MAX_COMMANDS = 100
 WEAPON_MAPPING = {}
 WEAPONS = {}
 DENSITY = 0
-obs_size = 31
-Positions = ["x='15' y='2' z='0'",
-             "x='-15' y='2' z='0'",
-             "x='0' y='2' z='15'",
-             "x='0' y='2' z='-15'"]
+obs_size = 11
+Positions = ["x='5' y='2' z='0'",
+             "x='-5' y='2' z='0'",
+             "x='0' y='2' z='5'",
+             "x='0' y='2' z='-5'"]
 
 def getWeapon(agentName):
     '''Returns the weapon of agent

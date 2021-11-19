@@ -94,15 +94,11 @@ def create_mission(agent_info, trackw=TRACK_WIDTH, trackb=TRACK_BREADTH, trackh=
         <AgentHandlers>
           <ContinuousMovementCommands turnSpeedDegs="360"/>
           <ChatCommands/>
-          <MissionQuitCommands/>
-          <RewardForCollectingItem>
-            <Item type="apple" reward="1"/>
-          </RewardForCollectingItem>
-          
+          <MissionQuitCommands/>          
           <ObservationFromGrid>
             <Grid name="floorAll">
-                <min x="-'''+str(int(obs_size/2) - 1)+'''" y="-1" z="-'''+str(int(obs_size/2) - 1)+'''"/>
-                <max x="'''+str(int(obs_size/2) )+'''" y="0" z="'''+str(int(obs_size/2))+'''"/>
+                <min x="-'''+str(int(obs_size/2) - 1)+'''" y="0" z="-'''+str(int(obs_size/2) - 1)+'''"/>
+                <max x="'''+str(int(obs_size/2) )+'''" y="1" z="'''+str(int(obs_size/2))+'''"/>
             </Grid>
           </ObservationFromGrid>
           <ObservationFromNearbyEntities>

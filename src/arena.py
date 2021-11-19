@@ -8,7 +8,7 @@ TIMELIMIT = 25000
 WEAPON_MAPPING = {}
 WEAPONS = {}
 DENSITY = 0
-obs_size = 30
+obs_size = 31
 Positions = ["x='15' y='2' z='0'",
              "x='-15' y='2' z='0'",
              "x='0' y='2' z='15'",
@@ -52,7 +52,7 @@ def create_mission(agent_info, trackw=TRACK_WIDTH, trackb=TRACK_BREADTH, trackh=
               <ServerSection>
                 <ServerInitialConditions>
                     <Time>
-                        <StartTime>18000</StartTime>
+                        <StartTime>8000</StartTime>
                            <AllowPassageOfTime>false</AllowPassageOfTime>
                         </Time>
                     <AllowSpawning>false</AllowSpawning>
@@ -60,12 +60,16 @@ def create_mission(agent_info, trackw=TRACK_WIDTH, trackb=TRACK_BREADTH, trackh=
                 <ServerHandlers>
                   <FlatWorldGenerator generatorString="3;7,2;1;"/>
                     <DrawingDecorator>''' + \
-                        "<DrawCuboid x1='{}' x2='{}' y1='2' y2='2' z1='{}' z2='{}' type='air'/>".format(-50, 50,
-                                                                                          -50, 50) + \
-                        "<DrawCuboid x1='{}' x2='{}' y1='1' y2='1' z1='{}' z2='{}' type='stone'/>".format(-50, 50,
-                                                                                            -50,
-                                                                                            50) + \
-                        stones() +\
+                        "<DrawCuboid x1='{}' x2='{}' y1='2' y2='2' z1='{}' z2='{}' type='air'/>".format(-obs_size, obs_size,
+                                                                                          -obs_size, obs_size) + \
+                        "<DrawCuboid x1='{}' x2='{}' y1='1' y2='1' z1='{}' z2='{}' type='stone'/>".format(-obs_size, obs_size,
+                                                                                            -obs_size,
+                                                                                            obs_size) + \
+                        "<DrawCuboid x1='" + str(-obs_size - 1)+ "' x2='" +str(obs_size + 1) + "' y1='1' y2='4' z1='" +str(obs_size+1)+ "' z2='" +str(obs_size+1)+ "' type='stone'/>" +\
+                        "<DrawCuboid x1='" + str(-obs_size - 1) + "' x2='" + str(obs_size + 1) + "' y1='1' y2='4' z1='" + str(-obs_size - 1) + "' z2='" + str(-obs_size - 1) + "' type='stone'/>" + \
+                        "<DrawCuboid x1='" + str(-obs_size - 1) + "' x2='" + str(-obs_size - 1) + "' y1='1' y2='4' z1='" + str(-obs_size - 1) + "' z2='" + str(obs_size + 1) + "' type='stone'/>" + \
+                        "<DrawCuboid x1='" + str(obs_size + 1) + "' x2='" + str(obs_size + 1) + "' y1='1' y2='4' z1='" + str(-obs_size - 1) + "' z2='" + str(obs_size + 1) + "' type='stone'/>" + \
+               stones() +\
                         '''
                         <DrawBlock x='0'  y='2' z='0' type='air' />
                         <DrawBlock x='0'  y='1' z='0' type='stone' />

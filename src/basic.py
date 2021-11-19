@@ -122,9 +122,16 @@ class BasicBot():
             'Pitch', 'MobsKilled', 'XP']
             '''
             if command[2] >= .5:
-                self.agent_host.sendCommand('attack 1')
+                if AGENT_INFO[self.name] == 1:
+                    self.agent_host.sendCommand('use 1')
+                    time.sleep(1.1)
+                else:
+                    self.agent_host.sendCommand('attack 1')
             else:
-                self.agent_host.sendCommand('attack 0')
+                if AGENT_INFO[self.name] == 1:
+                    self.agent_host.sendCommand('use 0')
+                else:
+                    self.agent_host.sendCommand('attack 0')
             self.agent_host.sendCommand('move ' + str(command[0]))
             self.agent_host.sendCommand('turn ' + str(command[1]))
             time.sleep(0.5)
@@ -142,7 +149,8 @@ class BasicBot():
             reward = 0
             for r in world_state.rewards:
                 reward += r.getValue()
-            self.episode_return += reward
+            reward = (20-ob['entities'][1]['life'])/2 *0.1
+            self.episode_return = reward
             print(self.episode_return)
             return self.obs, reward, done, dict()
             # 0 is air, 1 is obstacle, 99 is enemy
@@ -174,10 +182,15 @@ class BasicBot():
         """
         # Reset Malmo
         world_state = self.agent_host.getWorldState()
+        self.agent_host.sendCommand('chat /enchant ' + self.name + ' unbreaking 3')
+        if AGENT_INFO[self.name] == 1:
+            self.agent_host.sendCommand('chat /enchant '+self.name+' infinity 1')
+            self.agent_host.sendCommand('chat /gamerule doNaturalRegen false')
 
 
         # Get Observation
         self.obs = self.get_observation(world_state)
+
 
         return self.obs
 

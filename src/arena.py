@@ -5,6 +5,7 @@ TRACK_WIDTH = 30
 TRACK_BREADTH = 30
 TRACK_HEIGHT = 30
 TIMELIMIT = 25000
+MAX_COMMANDS = 250
 WEAPON_MAPPING = {}
 WEAPONS = {}
 DENSITY = 0
@@ -110,6 +111,10 @@ def create_mission(agent_info, trackw=TRACK_WIDTH, trackb=TRACK_BREADTH, trackh=
           </ObservationFromNearbyEntities>
           <ObservationFromRay/>
           <ObservationFromFullStats/>
+          <RewardForMissionEnd rewardForDeath="-1">
+                <Reward description="Quota" reward="0"/>
+          </RewardForMissionEnd>
+          <AgentQuitFromReachingCommandQuota description= "Quota" total="''' + str(MAX_COMMANDS * 3) + '''" />
         </AgentHandlers>
       </AgentSection>'''
     missionXML += '</Mission>'

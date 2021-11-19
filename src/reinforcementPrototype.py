@@ -118,6 +118,7 @@ class environment(MultiAgentEnv):
         return self.obs
 
     def step(self, action):
+        self.episode_step += 1
         self.obs = {}
         reward = {}
         done = {}

@@ -45,6 +45,7 @@ class BasicBot():
         self.episode_return = 0
         self.returns = []
         self.steps = []
+        self.last_life = 20
         return
 
 
@@ -151,7 +152,12 @@ class BasicBot():
             reward = 0
             for r in world_state.rewards:
                 reward += r.getValue()
-            reward = (20-ob['entities'][1]['life'])/2 *0.1
+            for i in ob['entities']:
+                if i['name'] == 'robot1' and self.name == 'robot2' or i['name'] == 'robot2' and self.name == 'robot1':
+                    reward = (self.last_life-i['life'])/2 *0.1
+                    if reward < 0:
+                        reward = 0
+            self.last_life = ob['entities'][1]['life']
             self.episode_return += reward
             print(self.episode_return)
             return self.obs, reward, done, dict()
@@ -184,7 +190,7 @@ class BasicBot():
         """
         # Reset Malmo
         world_state = self.agent_host.getWorldState()
-        self.episode_step = 0
+        self.episode_return = 0
         self.agent_host.sendCommand('chat /enchant ' + self.name + ' unbreaking 3')
         if AGENT_INFO[self.name] == 1:
             self.agent_host.sendCommand('chat /enchant '+self.name+' infinity 1')

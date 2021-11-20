@@ -129,12 +129,17 @@ class environment(MultiAgentEnv):
         extra = {}
         for i in range(len(self.bots)):
             try:
-                self.obs["robot" + str(i + 1)], reward["robot" + str(i + 1)], done["robot" + str(i + 1)], extra[
-                    "robot" + str(i + 1)] = self.bots[i].step(action[self.bots[i].name])
+                temp_obs, temp_reward, temp_done,temp_extra = self.bots[i].step(action[self.bots[i].name])
+                self.obs["robot" + str(i + 1)] = temp_obs
+                reward["robot" + str(i + 1)] = temp_reward
+                done["robot" + str(i + 1)] = temp_done
+                extra["robot" + str(i + 1)] = temp_extra
                 self.episode_return["robot" + str(i + 1)] += reward["robot" + str(i + 1)]
                 pass
-            except:
+            except Exception as e:
+                print(e)
                 pass
+        #Terrible way to do this when have time fix to go through action list and not bots
         finished = len(done) == NUM_AGENTS or len(done) == 0
         for i in done:
             finished = finished and done[i]
@@ -242,17 +247,25 @@ class environment(MultiAgentEnv):
             returns (list): list of total return of each episode
         """
         box = np.ones(self.log_frequency) / self.log_frequency
-        returns_smooth = np.convolve(self.returns[1:], box, mode='same')
+        robot1_scores = []
+        robot2_scores = []
+        for i in self.returns[1:]:
+            robot1_scores.append(i['robot1'])
+            robot2_scores.append(i['robot2'])
+        returns_smooth_agent_1 = np.convolve(robot1_scores, box, mode='same')
+        returns_smooth_agent_2 = np.convolve(robot2_scores, box, mode='same')
         plt.clf()
-        plt.plot(self.steps[1:], returns_smooth)
-        plt.title('Diamond Collector')
+        plt.plot(self.steps[1:], returns_smooth_agent_1, 'g-', label='Agent 1')
+        plt.plot(self.steps[1:], returns_smooth_agent_2, 'b--', label='Agent 2')
+        plt.title('Fighter')
         plt.ylabel('Return')
         plt.xlabel('Steps')
+        plt.legend()
         plt.savefig('returns.png')
 
         with open('returns.txt', 'w') as f:
             for step, value in zip(self.steps[1:], self.returns[1:]):
-                f.write("{}\t{}\n".format(step, value))
+                f.write("{}\t{}\t{}\n".format(step, value['robot1'], value['robot2']))
 
 
 if __name__ == '__main__':

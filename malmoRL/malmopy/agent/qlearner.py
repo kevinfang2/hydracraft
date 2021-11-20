@@ -203,7 +203,7 @@ class QLearnerAgent(BaseAgent):
         self._stats_loss = []
 
     def act(self, new_state, reward, done, is_training=False):
-
+        print("??")
         if self._tracker is not None:
             self.observe(self._tracker.state, self._tracker.action,
                          reward, new_state, done)
@@ -224,6 +224,7 @@ class QLearnerAgent(BaseAgent):
 
             self._stats_mean_qvalues.append(q_values.max())
             self._stats_stddev_qvalues.append(np.std(q_values))
+        print(new_action, self.nb_actions)
 
         self._tracker = Tracker(new_state, new_action)
         self._actions_taken += 1

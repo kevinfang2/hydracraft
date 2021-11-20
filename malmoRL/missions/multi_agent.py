@@ -11,18 +11,29 @@ class MultiAgent(Mission):
         mission_name = 'multi_agent'
         agent_names = ['Agent_1', 'Agent_2']
 
-        self.NUM_MOBS = 4
+        self.NUM_MOBS = 30
         self.NUM_ITEMS = 4
         
         DENSITY = 0.1
 
         def stones():
             stone = ''
-            for i in range(50):
-                for j in range(50):
+            for i in range(-18,18):
+                for j in range(-18,18):
                     if random.randint(0,100)/100. < DENSITY:
                         stone +="<DrawBlock x='%s'  y='2' z='%s' type='bedrock' />"%(i,j)
             return stone
+
+        def drawFence():
+            fence = ''
+            for i in range(-20,20):
+                for j in range(-20,20):
+                    fence += "<DrawBlock x='20' y='2' z='{}' type='fence'/>".format(i)
+                    fence += "<DrawBlock x='-20' y='2' z='{}' type='fence'/>".format(i)
+                    fence += "<DrawBlock x='{}' y='2' z='20' type='fence'/>".format(i)
+                    fence += "<DrawBlock x='{}' y='2' z='-20' type='fence'/>".format(i)
+            return fence
+            
         mission_xml='''<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
             <Mission xmlns="http://ProjectMalmo.microsoft.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
               <About>
@@ -49,6 +60,7 @@ class MultiAgent(Mission):
                                                                                             -50,
                                                                                             50) + \
                         stones() +\
+                        drawFence() +\
                         '''<DrawBlock x="0" y="226" z="0" type="fence"/>''' + self.drawMobs() + \
                         '''
                         <DrawBlock x='0'  y='2' z='0' type='air' />
@@ -71,11 +83,11 @@ class MultiAgent(Mission):
                 random.randint(-17, 17)) + '''"/>
                     <Inventory>
                 '''
-            if(weapon == 0):
-                mission_xml += '''<InventoryObject slot="0" type="wooden_sword" quantity="1"/>'''
-            else:
-                mission_xml += '''<InventoryObject slot="1" type="bow" quantity="1"/>
-                    <InventoryObject slot="2" type="arrow" quantity="64"/>'''
+            # if(weapon == 0):
+            mission_xml += '''<InventoryObject slot="0" type="wooden_sword" quantity="1"/>'''
+            # else:
+                # mission_xml += '''<InventoryObject slot="1" type="bow" quantity="1"/>
+                    # <InventoryObject slot="2" type="arrow" quantity="64"/>'''
                 
             mission_xml += '''
                 </Inventory>
@@ -88,16 +100,15 @@ class MultiAgent(Mission):
                 <ObservationFromFullStats/>
                 <ContinuousMovementCommands turnSpeedDegs="45"/>
 
-                <RewardForTimeTaken initialReward="0" delta="1" density="PER_TICK"/>
+                <RewardForTimeTaken initialReward="500" delta="-5" density="MISSION_END"/>
                 <RewardForDamagingEntity>
-                    <Mob type="Zombie" reward="1"/>
+                    <Mob type="Zombie" reward="10000"/>
                 </RewardForDamagingEntity>
-                <RewardForSendingCommand reward="-1"/>
             </AgentHandlers>
             </AgentSection>'''
 
         mission_xml += '''</Mission>'''
-
+        
         super(MultiAgent, self).__init__(mission_name=mission_name, agent_names=agent_names, mission_xml=mission_xml)
 
     def drawMobs(self):
@@ -139,7 +150,6 @@ class MultiAgentEnvironment(MissionEnvironment):
         # For discrete action space, do the environment action corresponding to the action id sent by the agent
         action = self._actions[action_id]
         assert isinstance(action, six.string_types)
-
         if self._action_count > 0:
             if self._previous_action == 'attack 1':
                 self._agent.sendCommand('attack 0')

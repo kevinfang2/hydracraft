@@ -124,6 +124,8 @@ class BasicBot():
             'XPos', 'WorldTime', 'Air', 'DistanceTravelled', 'Score', 'YPos',
             'Pitch', 'MobsKilled', 'XP']
             '''
+            self.agent_host.sendCommand('move ' + str(command[0]))
+            self.agent_host.sendCommand('turn ' + str(command[1]))
             if command[2] >= .5:
                 if AGENT_INFO[self.name] == 1:
                     self.agent_host.sendCommand('use 1')
@@ -135,8 +137,6 @@ class BasicBot():
                     self.agent_host.sendCommand('use 0')
                 else:
                     self.agent_host.sendCommand('attack 0')
-            self.agent_host.sendCommand('move ' + str(command[0]))
-            self.agent_host.sendCommand('turn ' + str(command[1]))
             time.sleep(0.5)
             self.episode_step += 1
 

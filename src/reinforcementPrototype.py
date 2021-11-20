@@ -269,6 +269,7 @@ class environment(MultiAgentEnv):
 
 
 if __name__ == '__main__':
+    #TODO: policy for each robot
     robot_act_space = gym.spaces.Box(low=np.array([-1.0, -1.0, 0.0]), high=np.array([1.0, 1.0, 1.0]),
                                        dtype=np.float32)
     robot_obs_space = Box(0, 99, shape=(2 * ARENA_SIZE * ARENA_SIZE,), dtype=np.float32)
@@ -281,7 +282,7 @@ if __name__ == '__main__':
         },
         "policy_mapping_fn":
             lambda agent_id:
-                "robot"  # Traffic lights are always controlled by this policy
+                "robot"
     },
         'env_config': {},  # No environment parameters to configure
         'framework': 'torch',  # Use pyotrch instead of tensorflow

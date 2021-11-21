@@ -31,7 +31,7 @@ google-auth-oauthlib==0.4.6
 google-pasta==0.2.0
 googleapis-common-protos==1.53.0
 gpustat==0.6.0
-grpcio==1.41.0
+grpcio==1.41.0rc2
 gym==0.17.3
 h5py==2.10.0
 idna==3.3

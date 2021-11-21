@@ -5,10 +5,15 @@ TRACK_WIDTH = 30
 TRACK_BREADTH = 30
 TRACK_HEIGHT = 30
 TIMELIMIT = 25000
+MAX_COMMANDS = 100
 WEAPON_MAPPING = {}
 WEAPONS = {}
-DENSITY = 0.2
-obs_size = 30
+DENSITY = 0
+obs_size = 11
+Positions = ["x='5' y='2' z='0'",
+             "x='-5' y='2' z='0'",
+             "x='0' y='2' z='5'",
+             "x='0' y='2' z='-5'"]
 
 def getWeapon(agentName):
     '''Returns the weapon of agent
@@ -48,7 +53,7 @@ def create_mission(agent_info, trackw=TRACK_WIDTH, trackb=TRACK_BREADTH, trackh=
               <ServerSection>
                 <ServerInitialConditions>
                     <Time>
-                        <StartTime>18000</StartTime>
+                        <StartTime>8000</StartTime>
                            <AllowPassageOfTime>false</AllowPassageOfTime>
                         </Time>
                     <AllowSpawning>false</AllowSpawning>
@@ -56,12 +61,16 @@ def create_mission(agent_info, trackw=TRACK_WIDTH, trackb=TRACK_BREADTH, trackh=
                 <ServerHandlers>
                   <FlatWorldGenerator generatorString="3;7,2;1;"/>
                     <DrawingDecorator>''' + \
-                        "<DrawCuboid x1='{}' x2='{}' y1='2' y2='2' z1='{}' z2='{}' type='air'/>".format(-50, 50,
-                                                                                          -50, 50) + \
-                        "<DrawCuboid x1='{}' x2='{}' y1='1' y2='1' z1='{}' z2='{}' type='stone'/>".format(-50, 50,
-                                                                                            -50,
-                                                                                            50) + \
-                        stones() +\
+                        "<DrawCuboid x1='{}' x2='{}' y1='2' y2='2' z1='{}' z2='{}' type='air'/>".format(-obs_size, obs_size,
+                                                                                          -obs_size, obs_size) + \
+                        "<DrawCuboid x1='{}' x2='{}' y1='1' y2='1' z1='{}' z2='{}' type='stone'/>".format(-obs_size, obs_size,
+                                                                                            -obs_size,
+                                                                                            obs_size) + \
+                        "<DrawCuboid x1='" + str(-obs_size - 1)+ "' x2='" +str(obs_size + 1) + "' y1='1' y2='4' z1='" +str(obs_size+1)+ "' z2='" +str(obs_size+1)+ "' type='stone'/>" +\
+                        "<DrawCuboid x1='" + str(-obs_size - 1) + "' x2='" + str(obs_size + 1) + "' y1='1' y2='4' z1='" + str(-obs_size - 1) + "' z2='" + str(-obs_size - 1) + "' type='stone'/>" + \
+                        "<DrawCuboid x1='" + str(-obs_size - 1) + "' x2='" + str(-obs_size - 1) + "' y1='1' y2='4' z1='" + str(-obs_size - 1) + "' z2='" + str(obs_size + 1) + "' type='stone'/>" + \
+                        "<DrawCuboid x1='" + str(obs_size + 1) + "' x2='" + str(obs_size + 1) + "' y1='1' y2='4' z1='" + str(-obs_size - 1) + "' z2='" + str(obs_size + 1) + "' type='stone'/>" + \
+               stones() +\
                         '''
                         <DrawBlock x='0'  y='2' z='0' type='air' />
                         <DrawBlock x='0'  y='1' z='0' type='stone' />
@@ -70,19 +79,19 @@ def create_mission(agent_info, trackw=TRACK_WIDTH, trackb=TRACK_BREADTH, trackh=
                 </ServerHandlers>
             </ServerSection>
     '''
-
+    # The Position implementation will easily break, a better implementation is suggested
     for name,weapon in agent_info.items():
         missionXML += '''<AgentSection mode="Survival">
         <Name>''' + name + '''</Name>
         <AgentStart>
-          <Placement x="''' + str(random.randint(-17,17)) + '''" y="2" z="''' + str(random.randint(-17,17)) + '''"/>
+          <Placement '''+ Positions[int(name[-1])-1]+'''/>
             <Inventory>
           '''
         if(weapon == 0):
             missionXML += '''<InventoryObject slot="0" type="wooden_sword" quantity="1"/>'''
         else:
-            missionXML += '''<InventoryObject slot="1" type="bow" quantity="1"/>
-                <InventoryObject slot="2" type="arrow" quantity="64"/>'''
+            missionXML += '''<InventoryObject slot="0" type="bow" quantity="1"/>
+                <InventoryObject slot="1" type="arrow" quantity="64"/>'''
         
         missionXML += '''
           </Inventory>
@@ -90,15 +99,11 @@ def create_mission(agent_info, trackw=TRACK_WIDTH, trackb=TRACK_BREADTH, trackh=
         <AgentHandlers>
           <ContinuousMovementCommands turnSpeedDegs="360"/>
           <ChatCommands/>
-          <MissionQuitCommands/>
-          <RewardForCollectingItem>
-            <Item type="apple" reward="1"/>
-          </RewardForCollectingItem>
-          
+          <MissionQuitCommands/>          
           <ObservationFromGrid>
             <Grid name="floorAll">
-                <min x="-'''+str(int(obs_size/2) - 1)+'''" y="-1" z="-'''+str(int(obs_size/2) - 1)+'''"/>
-                <max x="'''+str(int(obs_size/2) )+'''" y="0" z="'''+str(int(obs_size/2))+'''"/>
+                <min x="-'''+str(int(obs_size/2) - 1)+'''" y="0" z="-'''+str(int(obs_size/2) - 1)+'''"/>
+                <max x="'''+str(int(obs_size/2) )+'''" y="1" z="'''+str(int(obs_size/2))+'''"/>
             </Grid>
           </ObservationFromGrid>
           <ObservationFromNearbyEntities>
@@ -106,6 +111,10 @@ def create_mission(agent_info, trackw=TRACK_WIDTH, trackb=TRACK_BREADTH, trackh=
           </ObservationFromNearbyEntities>
           <ObservationFromRay/>
           <ObservationFromFullStats/>
+          <RewardForMissionEnd rewardForDeath="-1">
+                <Reward description="Quota" reward="0"/>
+          </RewardForMissionEnd>
+          <AgentQuitFromReachingCommandQuota description= "Quota" total="''' + str(MAX_COMMANDS * 3) + '''" />
         </AgentHandlers>
       </AgentSection>'''
     missionXML += '</Mission>'

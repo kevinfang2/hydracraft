@@ -129,7 +129,6 @@ class BasicBot():
             if command[2] >= .5:
                 if AGENT_INFO[self.name] == 1:
                     self.agent_host.sendCommand('use 1')
-                    time.sleep(1.1)
                 else:
                     self.agent_host.sendCommand('attack 1')
             else:

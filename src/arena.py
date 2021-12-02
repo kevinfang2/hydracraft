@@ -1,15 +1,8 @@
 import math
 import random
+import Constants
 
-TRACK_WIDTH = 30
-TRACK_BREADTH = 30
-TRACK_HEIGHT = 30
-TIMELIMIT = 25000
-MAX_COMMANDS = 100
-WEAPON_MAPPING = {}
-WEAPONS = {}
-DENSITY = 0
-obs_size = 11
+
 Positions = ["x='5' y='2' z='0'",
              "x='-5' y='2' z='0'",
              "x='0' y='2' z='5'",
@@ -24,17 +17,19 @@ def getWeapon(agentName):
     weapons:
         - 0 for sword
         - 1 for bow arrow
+        - 2 for trident
+        - 3 for crossbow arrow
     '''
-    if agentName not in WEAPON_MAPPING.keys():
+    if agentName not in Constants.WEAPON_MAPPING.keys():
         return agentName
-    return WEAPON_MAPPING[agentName]
+    return Constants.WEAPON_MAPPING[agentName]
 
-def create_mission(agent_info, trackw=TRACK_WIDTH, trackb=TRACK_BREADTH, trackh=TRACK_HEIGHT, timelimit=TIMELIMIT):
+def create_mission(agent_info, trackw=Constants.TRACK_WIDTH, trackb=Constants.TRACK_BREADTH, trackh=Constants.TRACK_HEIGHT, timelimit=Constants.TIMELIMIT):
     def stones():
         stone = ''
         for i in range(50):
             for j in range(50):
-                if random.randint(0,100)/100. < DENSITY:
+                if random.randint(0,100)/100. < Constants.DENSITY:
                     stone +="<DrawBlock x='%s'  y='2' z='%s' type='bedrock' />"%(i,j)
         return stone
 
@@ -61,15 +56,15 @@ def create_mission(agent_info, trackw=TRACK_WIDTH, trackb=TRACK_BREADTH, trackh=
                 <ServerHandlers>
                   <FlatWorldGenerator generatorString="3;7,2;1;"/>
                     <DrawingDecorator>''' + \
-                        "<DrawCuboid x1='{}' x2='{}' y1='2' y2='2' z1='{}' z2='{}' type='air'/>".format(-obs_size, obs_size,
-                                                                                          -obs_size, obs_size) + \
-                        "<DrawCuboid x1='{}' x2='{}' y1='1' y2='1' z1='{}' z2='{}' type='stone'/>".format(-obs_size, obs_size,
-                                                                                            -obs_size,
-                                                                                            obs_size) + \
-                        "<DrawCuboid x1='" + str(-obs_size - 1)+ "' x2='" +str(obs_size + 1) + "' y1='1' y2='4' z1='" +str(obs_size+1)+ "' z2='" +str(obs_size+1)+ "' type='stone'/>" +\
-                        "<DrawCuboid x1='" + str(-obs_size - 1) + "' x2='" + str(obs_size + 1) + "' y1='1' y2='4' z1='" + str(-obs_size - 1) + "' z2='" + str(-obs_size - 1) + "' type='stone'/>" + \
-                        "<DrawCuboid x1='" + str(-obs_size - 1) + "' x2='" + str(-obs_size - 1) + "' y1='1' y2='4' z1='" + str(-obs_size - 1) + "' z2='" + str(obs_size + 1) + "' type='stone'/>" + \
-                        "<DrawCuboid x1='" + str(obs_size + 1) + "' x2='" + str(obs_size + 1) + "' y1='1' y2='4' z1='" + str(-obs_size - 1) + "' z2='" + str(obs_size + 1) + "' type='stone'/>" + \
+                        "<DrawCuboid x1='{}' x2='{}' y1='2' y2='2' z1='{}' z2='{}' type='air'/>".format(-Constants.obs_size, Constants.obs_size,
+                                                                                          -Constants.obs_size, Constants.obs_size) + \
+                        "<DrawCuboid x1='{}' x2='{}' y1='1' y2='1' z1='{}' z2='{}' type='stone'/>".format(-Constants.obs_size, Constants.obs_size,
+                                                                                            -Constants.obs_size,
+                                                                                            Constants.obs_size) + \
+                        "<DrawCuboid x1='" + str(-Constants.obs_size - 1)+ "' x2='" +str(Constants.obs_size + 1) + "' y1='1' y2='4' z1='" +str(Constants.obs_size+1)+ "' z2='" +str(Constants.obs_size+1)+ "' type='stone'/>" +\
+                        "<DrawCuboid x1='" + str(-Constants.obs_size - 1) + "' x2='" + str(Constants.obs_size + 1) + "' y1='1' y2='4' z1='" + str(-Constants.obs_size - 1) + "' z2='" + str(-Constants.obs_size - 1) + "' type='stone'/>" + \
+                        "<DrawCuboid x1='" + str(-Constants.obs_size - 1) + "' x2='" + str(-Constants.obs_size - 1) + "' y1='1' y2='4' z1='" + str(-Constants.obs_size - 1) + "' z2='" + str(Constants.obs_size + 1) + "' type='stone'/>" + \
+                        "<DrawCuboid x1='" + str(Constants.obs_size + 1) + "' x2='" + str(Constants.obs_size + 1) + "' y1='1' y2='4' z1='" + str(-Constants.obs_size - 1) + "' z2='" + str(Constants.obs_size + 1) + "' type='stone'/>" + \
                stones() +\
                         '''
                         <DrawBlock x='0'  y='2' z='0' type='air' />
@@ -89,8 +84,13 @@ def create_mission(agent_info, trackw=TRACK_WIDTH, trackb=TRACK_BREADTH, trackh=
           '''
         if(weapon == 0):
             missionXML += '''<InventoryObject slot="0" type="wooden_sword" quantity="1"/>'''
-        else:
+        elif(weapon == 1):
             missionXML += '''<InventoryObject slot="0" type="bow" quantity="1"/>
+                <InventoryObject slot="1" type="arrow" quantity="64"/>'''
+        elif(weapon == 2):
+            missionXML += '''<InventoryObject slot="0" type="trident" quantity="1"/>'''
+        elif(weapon == 3):
+            missionXML += '''<InventoryObject slot="0" type="crossbow" quantity="1"/>
                 <InventoryObject slot="1" type="arrow" quantity="64"/>'''
         
         missionXML += '''
@@ -102,8 +102,8 @@ def create_mission(agent_info, trackw=TRACK_WIDTH, trackb=TRACK_BREADTH, trackh=
           <MissionQuitCommands/>          
           <ObservationFromGrid>
             <Grid name="floorAll">
-                <min x="-'''+str(int(obs_size/2) - 1)+'''" y="0" z="-'''+str(int(obs_size/2) - 1)+'''"/>
-                <max x="'''+str(int(obs_size/2) )+'''" y="1" z="'''+str(int(obs_size/2))+'''"/>
+                <min x="-'''+str(int(Constants.obs_size/2) - 1)+'''" y="0" z="-'''+str(int(Constants.obs_size/2) - 1)+'''"/>
+                <max x="'''+str(int(Constants.obs_size/2) )+'''" y="1" z="'''+str(int(Constants.obs_size/2))+'''"/>
             </Grid>
           </ObservationFromGrid>
           <ObservationFromNearbyEntities>
@@ -114,7 +114,7 @@ def create_mission(agent_info, trackw=TRACK_WIDTH, trackb=TRACK_BREADTH, trackh=
           <RewardForMissionEnd rewardForDeath="-1">
                 <Reward description="Quota" reward="0"/>
           </RewardForMissionEnd>
-          <AgentQuitFromReachingCommandQuota description= "Quota" total="''' + str(MAX_COMMANDS * 3) + '''" />
+          <AgentQuitFromReachingCommandQuota description= "Quota" total="''' + str(Constants.MAX_COMMANDS * 3) + '''" />
         </AgentHandlers>
       </AgentSection>'''
     missionXML += '</Mission>'

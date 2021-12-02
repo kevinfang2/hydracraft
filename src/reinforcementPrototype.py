@@ -36,23 +36,15 @@ import time
 import uuid
 from collections import namedtuple
 import gym
+
 import arena
 import basic
+import Constants
 
 from gym.spaces import Discrete, Box
 import ray
 from ray.rllib.agents import ppo
 from ray.rllib.env.multi_agent_env import MultiAgentEnv
-
-# 0 is sword, 1 is bow
-AGENT_INFO = {
-    'robot1': 0,
-    'robot2': 1
-}
-NUM_AGENTS = len(AGENT_INFO)
-
-ARENA_SIZE = 11
-ARENA_HEIGHT = 2
 
 
 EntityInfo = namedtuple('EntityInfo', 'x, y, z, name')
@@ -60,7 +52,7 @@ class environment(MultiAgentEnv):
     def __init__(self, env_config):
         # Static Parameters
         self.bots = []
-        self.size = ARENA_SIZE
+        self.size = Constants.ARENA_SIZE
         self.reward_density = .1
         self.penalty_density = .02
         self.obs_size = 5
@@ -75,7 +67,7 @@ class environment(MultiAgentEnv):
 
         self.action_space = gym.spaces.Box(low=np.array([-1.0, -1.0, 0.0]), high=np.array([1.0, 1.0, 1.0]),
                                            dtype=np.float32)
-        self.observation_space = Box(0, 99, shape=(ARENA_HEIGHT * ARENA_SIZE * ARENA_SIZE,), dtype=np.float32)
+        self.observation_space = Box(0, 99, shape=(Constants.ARENA_HEIGHT * Constants.ARENA_SIZE * Constants.ARENA_SIZE,), dtype=np.float32)
 
         # Rllib Parameters
 
@@ -87,12 +79,12 @@ class environment(MultiAgentEnv):
             print('ERROR:', e)
             print(self.agent_hosts[0].getUsage())
             exit(1)
-        self.agent_hosts += [MalmoPython.AgentHost() for x in range(1, NUM_AGENTS)]
+        self.agent_hosts += [MalmoPython.AgentHost() for x in range(1, Constants.NUM_AGENTS)]
         self.bots += [basic.BasicBot(self.agent_hosts[x], "robot"+str(x+1)) for x in range(len(self.agent_hosts))]
         self.obs = None
         self.episode_step = 0
         self.episode_return = {}
-        for i in range(NUM_AGENTS):
+        for i in range(Constants.NUM_AGENTS):
             self.episode_return["robot"+str(i+1)] = 0
         self.returns = []
         self.steps = []
@@ -105,7 +97,7 @@ class environment(MultiAgentEnv):
         current_step = self.steps[-1] if len(self.steps) > 0 else 0
         self.steps.append(current_step + self.episode_step)
         self.episode_return = {}
-        for i in range(NUM_AGENTS):
+        for i in range(Constants.NUM_AGENTS):
             self.episode_return["robot" + str(i + 1)] = 0
         self.episode_step = 0
 
@@ -140,7 +132,7 @@ class environment(MultiAgentEnv):
                 print(e)
                 pass
         #Terrible way to do this when have time fix to go through action list and not bots
-        finished = len(done) == NUM_AGENTS or len(done) == 0
+        finished = len(done) == Constants.NUM_AGENTS or len(done) == 0
         for i in done:
             finished = finished and done[i]
         done["__all__"] = finished
@@ -211,11 +203,11 @@ class environment(MultiAgentEnv):
         # for mission_no in range(1, num_missions+1):
         # xml = getXML()
         # print(xml)
-        xml = arena.create_mission(AGENT_INFO)
+        xml = arena.create_mission(Constants.AGENT_INFO)
         my_mission = MalmoPython.MissionSpec(xml, True)
 
         client_pool = MalmoPython.ClientPool()
-        for x in range(10000, 10000 + NUM_AGENTS + 1):
+        for x in range(10000, 10000 + Constants.NUM_AGENTS + 1):
             client_pool.add(MalmoPython.ClientInfo('127.0.0.1', x))
         experimentID = str(uuid.uuid4())
 
@@ -269,9 +261,9 @@ class environment(MultiAgentEnv):
 
 
 if __name__ == '__main__':
-    robot_act_space = gym.spaces.Box(low=np.array([-1.0, -1.0, 0.0]), high=np.array([1.0, 1.0, 1.0]),
+    robot_act_space = gym.spaces.Box(low=np.array([-1.0, -1.0, 0.0, 0.0]), high=np.array([1.0, 1.0, 1.0, 1.0]),
                                        dtype=np.float32)
-    robot_obs_space = Box(0, 99, shape=(2 * ARENA_SIZE * ARENA_SIZE,), dtype=np.float32)
+    robot_obs_space = Box(0, 99, shape=(Constants.ARENA_HEIGHT * Constants.ARENA_SIZE * Constants.ARENA_SIZE,), dtype=np.float32)
     ray.init()
     trainer = ppo.PPOTrainer(env=environment, config=
     {"multiagent": {

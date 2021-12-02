@@ -1,31 +1,16 @@
-import uuid
-from builtins import range
-from past.utils import old_div
+import Constants
 import json
 import sys
 import time
 from collections import namedtuple
-from operator import add
 import numpy as np
 import gym, ray
 from gym.spaces import Discrete, Box
-from ray.rllib.agents import ppo
-
-import arena
-import multiagent
 
 try:
     import MalmoPython
 except:
     import malmo.MalmoPython as MalmoPython
-
-# 0 is sword, 1 is bow
-AGENT_INFO = {
-    'robot1': 0,
-    'robot2': 1
-}
-NUM_AGENTS = len(AGENT_INFO)
-
 
 
 EntityInfo = namedtuple('EntityInfo', 'x, y, z, name')
@@ -36,7 +21,7 @@ class BasicBot():
         self.name = name
         self.obs_size = 11
         self.agent_host = agent_host
-        self.action_space = gym.spaces.Box(low=np.array([-1.0, -1.0, 0.0]), high=np.array([1.0, 1.0, 1.0]),
+        self.action_space = gym.spaces.Box(low=np.array([-1.0, -1.0, 0.0, 0.0]), high=np.array([1.0, 1.0, 1.0, 1.0]),
                                            dtype=np.float32)
         self.observation_space = Box(0, 99, shape=(2 * self.obs_size * self.obs_size,), dtype=np.float32)
         self.episode_step = 0
@@ -104,82 +89,41 @@ class BasicBot():
 
         return obs
 
-
-    def calc_reward(self, healthDelta, damageDelta):
-        reward = 0
-        reward += damageDelta * 15
-        reward += healthDelta * 10
-        return -10 if reward == 0 else reward
-
-
     def step(self, command):
-        time.sleep(0.1)
+        '''Obs has the following keys:
+                ['PlayersKilled', 'TotalTime', 'Life', 'ZPos', 'IsAlive',
+                'Name', 'entities', 'DamageTaken', 'Food', 'Yaw', 'TimeAlive',
+                'XPos', 'WorldTime', 'Air', 'DistanceTravelled', 'Score', 'YPos',
+                'Pitch', 'MobsKilled', 'XP']
+                '''
+        self.agent_host.sendCommand('move ' + str(command[0]))
+        self.agent_host.sendCommand('turn ' + str(command[1]))
+        time.sleep(0.5)
+        self.episode_step += 1
+
         world_state = self.agent_host.getWorldState()
-        if world_state.number_of_observations_since_last_state > 0:
-            msg = world_state.observations[-1].text
-            ob = json.loads(msg)
-            '''Obs has the following keys:
-            ['PlayersKilled', 'TotalTime', 'Life', 'ZPos', 'IsAlive',
-            'Name', 'entities', 'DamageTaken', 'Food', 'Yaw', 'TimeAlive',
-            'XPos', 'WorldTime', 'Air', 'DistanceTravelled', 'Score', 'YPos',
-            'Pitch', 'MobsKilled', 'XP']
-            '''
-            if command[2] >= .5:
-                if AGENT_INFO[self.name] == 1:
-                    self.agent_host.sendCommand('use 1')
-                    time.sleep(1.1)
-                else:
-                    self.agent_host.sendCommand('attack 1')
-            else:
-                if AGENT_INFO[self.name] == 1:
-                    self.agent_host.sendCommand('use 0')
-                else:
-                    self.agent_host.sendCommand('attack 0')
-            self.agent_host.sendCommand('move ' + str(command[0]))
-            self.agent_host.sendCommand('turn ' + str(command[1]))
-            time.sleep(0.5)
-            self.episode_step += 1
-
-            world_state = self.agent_host.getWorldState()
-            for error in world_state.errors:
-                print("Error:", error.text)
-            self.obs = self.get_observation(world_state)
-
-            # Get Done
-            done = not world_state.is_mission_running
-
-            # Get Reward
-            reward = 0
-            for r in world_state.rewards:
-                reward += r.getValue()
-            for i in ob['entities']:
-                if i['name'] == 'robot1' and self.name == 'robot2' or i['name'] == 'robot2' and self.name == 'robot1':
-                    reward = (self.last_life-i['life'])/2 *0.1
-                    if reward < 0:
-                        reward = 0
-            self.last_life = ob['entities'][1]['life']
-            self.episode_return += reward
-            print(self.episode_return)
-            return self.obs, reward, done, dict()
-            # 0 is air, 1 is obstacle, 99 is enemy
-
-
-            # if target == None: # No enemies nearby
-            #     if target != None:
-            #         sys.stdout.write("Not found: "+target['name'] + "\n")
-            #     self.agent_host.sendCommand("move 0") # stop moving
-            #     self.agent_host.sendCommand("attack 0") # stop attacking
-            #     self.agent_host.sendCommand("turn 0") # stop turning
-            #     self.agent_host.sendCommand("pitch 0") # stop looking up/down
-            # else:# enemy nearby, kill kill kill
-            #     deltaYaw = 5
-            #     deltaPitch = 5
-            #     self.agent_host.sendCommand("turn " + str(deltaYaw))
-            #     self.agent_host.sendCommand("pitch " + str(deltaPitch))
-            #     self.agent_host.sendCommand("attack 1")
-
+        msg = world_state.observations[-1].text
+        ob = json.loads(msg)
         for error in world_state.errors:
             print("Error:", error.text)
+        self.obs = self.get_observation(world_state)
+
+        # Get Done
+        done = not world_state.is_mission_running
+
+        # Get Reward
+        reward = 0
+        for r in world_state.rewards:
+            reward += r.getValue()
+        for i in ob['entities']:
+            if i['name'] == 'robot1' and self.name == 'robot2' or i['name'] == 'robot2' and self.name == 'robot1':
+                reward = (self.last_life-i['life'])/2 *0.1
+                if reward < 0:
+                    reward = 0
+        self.last_life = ob['entities'][1]['life']
+        self.episode_return += reward
+        print(self.episode_return)
+        return self.obs, reward, done, dict()
 
     def reset(self):
         """
@@ -192,10 +136,7 @@ class BasicBot():
         world_state = self.agent_host.getWorldState()
         self.episode_return = 0
         self.agent_host.sendCommand('chat /enchant ' + self.name + ' unbreaking 3')
-        if AGENT_INFO[self.name] == 1:
-            self.agent_host.sendCommand('chat /enchant '+self.name+' infinity 1')
-            self.agent_host.sendCommand('chat /gamerule doNaturalRegen false')
-
+        self.agent_host.sendCommand('chat /gamerule doNaturalRegen false')
 
         # Get Observation
         self.obs = self.get_observation(world_state)

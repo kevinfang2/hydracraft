@@ -1,5 +1,6 @@
 # Byte-compiled / optimized / DLL files
 test.tgz
+mission_records/
 results/
 
 __pycache__/

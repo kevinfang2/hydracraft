@@ -402,6 +402,8 @@ class MarloEnvBuilderBase(gym.Env):
         # print(mission_xml)
         parser = marlo.commands.CommandParser(params.comp_all_commands)
         commands = parser.get_commands(mission_xml, params.role)
+        commands.append(('DiscreteMovement', False, "attack"))
+
         # print(commands)
         for (command_handler, turnbased, command) in commands:
             logger.debug("CommandHandler: {} turn based: {} command: {} ".format(command_handler, turnbased, command))
@@ -697,7 +699,6 @@ class MarloEnvBuilderBase(gym.Env):
         if world_state.is_mission_running:
             if not self._turn or self._turn.can_play:
                 self.send_command("quit")
-                print("a", self.agent_host.peekWorldState().is_mission_running)
 
         if self.params.forceWorldReset:
             # Force a World Reset on each reset
@@ -817,6 +818,7 @@ class MarloEnvBuilderBase(gym.Env):
                 return
 
         # send corresponding command
+        print(self.action_names)
         for _spaces, _commands, _actions in \
                 zip(self.action_spaces, self.action_names, actions):
 
@@ -842,6 +844,7 @@ class MarloEnvBuilderBase(gym.Env):
     def step_wrapper(self, action):
         world_state = self.agent_host.peekWorldState()
         if world_state.is_mission_running:
+            print("action is ", action)
             self._take_action(action)
 
         world_state = self._get_world_state()

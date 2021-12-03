@@ -78,9 +78,10 @@ class QLearner(BaseAgent):
         callbacks = [ModelIntervalCheckpoint(weights_path, interval=1000, verbose=1)]
         print(nb_steps)
         self.agent.fit(env, nb_steps, action_repetition=4, callbacks=callbacks, verbose=1, log_interval=1000)
-                    #    test_interval=10000, test_nb_episodes=10, test_action_repetition=4, test_visualize=False)
+                        #test_interval=10000, test_nb_episodes=10, test_action_repetition=4, test_visualize=False)
 
     def test(self, env, nb_episodes):
+
         self.agent.test(env, nb_episodes, action_repetition=4, verbose=1, visualize=False)
 
     def save(self, out_dir):
@@ -96,8 +97,10 @@ class MalmoProcessor(Processor):
         self.window_length = window_length
         self.recurrent = recurrent
         self.abs_max_reward = abs_max_reward
+        print("hi")
 
     def process_state_batch(self, batch):
+        print("got here??")
         if not self.grayscale:
             if not self.recurrent:
                 states = []

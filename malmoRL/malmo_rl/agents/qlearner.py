@@ -97,10 +97,8 @@ class MalmoProcessor(Processor):
         self.window_length = window_length
         self.recurrent = recurrent
         self.abs_max_reward = abs_max_reward
-        print("hi")
 
     def process_state_batch(self, batch):
-        print("got here??")
         if not self.grayscale:
             if not self.recurrent:
                 states = []

@@ -818,7 +818,6 @@ class MarloEnvBuilderBase(gym.Env):
                 return
 
         # send corresponding command
-        print(self.action_names)
         for _spaces, _commands, _actions in \
                 zip(self.action_spaces, self.action_names, actions):
 
@@ -844,7 +843,6 @@ class MarloEnvBuilderBase(gym.Env):
     def step_wrapper(self, action):
         world_state = self.agent_host.peekWorldState()
         if world_state.is_mission_running:
-            print("action is ", action)
             self._take_action(action)
 
         world_state = self._get_world_state()

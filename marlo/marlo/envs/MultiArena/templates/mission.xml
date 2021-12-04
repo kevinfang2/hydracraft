@@ -313,11 +313,14 @@
         <DrawBlock x="0" y="226" z="0" type="fence" />
         <DrawEntity x="5" y="2" z="-4" type="Zombie" />
         <DrawEntity x="-17" y="2" z="-8" type="Zombie" />
+        <DrawEntity x="-15" y="2" z="-8" type="Zombie" />
+        <DrawEntity x="13" y="2" z="-8" type="Zombie" />
+
         <DrawBlock x='0' y='2' z='0' type='air' />
         <DrawBlock x='0' y='1' z='0' type='stone' />
       </DrawingDecorator>
       <ServerQuitWhenAnyAgentFinishes description="server sees murder happen" />
-      <ServerQuitFromTimeUp timeLimitMs="20000"/>
+      <ServerQuitFromTimeUp timeLimitMs="20000" />
     </ServerHandlers>
   </ServerSection>
   <AgentSection mode="Survival">
@@ -325,8 +328,8 @@
     <AgentStart>
       <Placement x="-4" y="2" z="8" />
       <Inventory>
-        <InventoryItem slot="0" type="wooden_sword"/> 
-    </Inventory> 
+        <InventoryItem slot="0" type="wooden_sword" />
+      </Inventory>
     </AgentStart>
     <AgentHandlers>
       <VideoProducer>
@@ -334,12 +337,18 @@
         <Height>512</Height>
       </VideoProducer>
       <DiscreteMovementCommands>
-          <ModifierList type="deny-list">
-            <command>attack</command>
-          </ModifierList>
+        <ModifierList type="deny-list">
+          <command>attack</command>
+        </ModifierList>
       </DiscreteMovementCommands>
+      <ContinuousMovementCommands>
+        <ModifierList type="allow-list">
+          <command>attack</command>
+        </ModifierList>
+      </ContinuousMovementCommands>
+
       <ObservationFromFullStats />
-      <MissionQuitCommands/>
+      <MissionQuitCommands />
       <RewardForTimeTaken initialReward="500" delta="-5" density="MISSION_END" />
       <RewardForDamagingEntity>
         <Mob type="Zombie" reward="100" />

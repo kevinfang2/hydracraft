@@ -223,7 +223,6 @@ class QLearnerAgent(BaseAgent):
 
             self._stats_mean_qvalues.append(q_values.max())
             self._stats_stddev_qvalues.append(np.std(q_values))
-        print(new_action, self.nb_actions)
 
         self._tracker = Tracker(new_state, new_action)
         self._actions_taken += 1

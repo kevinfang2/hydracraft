@@ -19,7 +19,6 @@ class BasicBot():
     """BasicBot will be given an AgentHost in its run method and just track down & attack various enemies"""
     def __init__(self, agent_host, name):
         self.name = name
-        self.obs_size = 11
         self.agent_host = agent_host
         self.action_space = gym.spaces.Box(low=np.array([-1.0, -1.0, -1.0, 0.0, 0.0, 0.0]), high=np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0]),
                                            dtype=np.float32)
@@ -45,7 +44,7 @@ class BasicBot():
         Returns
             observation: <np.array> the state observation
         """
-        obs = np.zeros((2 * self.obs_size * self.obs_size, ))
+        obs = np.zeros((Constants.ARENA_HEIGHT * Constants.ARENA_SIZE * Constants.ARENA_SIZE, ))
 
         while world_state.is_mission_running:
             time.sleep(0.1)
@@ -64,17 +63,23 @@ class BasicBot():
                 for i, x in enumerate(grid):
                     if x == 'air':
                         obs[i] = 0
-                    if x == 'stone':
+                    if x == 'bedrock':
                         obs[i] = 1
+                    if x == 'stone':
+                        obs[i] = 2
                 # Rotate observation with orientation of agent
-                obs = obs.reshape((2, self.obs_size, self.obs_size))
-                xpos= self.obs_size //2
-                zpos= self.obs_size //2
+                obs = obs.reshape((Constants.ARENA_HEIGHT, Constants.ARENA_SIZE, Constants.ARENA_SIZE))
+                xpos= Constants.ARENA_SIZE //2
+                zpos= Constants.ARENA_SIZE //2
 
                 for i , x in enumerate(observations['entities']):
                     if x['name'] != self.name:
                         cords = (int(x['y'])-1, xpos + int(x['x'])-1, zpos +int(x['z'])-1)
-                        if max(cords) < self.obs_size and min(cords) >= 0:
+                        if max(cords) < Constants.ARENA_SIZE and min(cords) >= 0:
+                            print()
+                            print(int(x['y']))
+                            print(xpos + int(x['x'])-1)
+                            print(zpos +int(x['z'])-1)
                             obs[int(x['y'])-1, xpos + int(x['x'])-1, zpos +int(x['z'])-1] = 99
                 yaw = observations['Yaw']
                 if yaw >= 225 and yaw < 315:
@@ -138,6 +143,7 @@ class BasicBot():
         self.episode_return = 0
         self.agent_host.sendCommand('chat /enchant ' + self.name + ' unbreaking 3')
         self.agent_host.sendCommand('chat /gamerule doNaturalRegen false')
+        self.agent_host.sendCommand('chat /effect ' + self.name + ' 17 4 255')
 
         # Get Observation
         self.obs = self.get_observation(world_state)

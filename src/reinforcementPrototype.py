@@ -63,12 +63,6 @@ class environment(MultiAgentEnv):
         self.obs_size = 5
         self.max_episode_steps = 100
         self.log_frequency = 10
-        self.action_dict = {
-            0: 'move 1',  # Move one block forward
-            1: 'turn 1',  # Turn 90 degrees to the right
-            2: 'turn -1',  # Turn 90 degrees to the left
-            3: 'attack 1'  # Destroy block
-        }
 
         self.action_space = gym.spaces.Box(low=np.array([-1.0, -1.0, -1.0, 0.0, 0.0, 0.0]),
                                            high=np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0]),
@@ -128,18 +122,16 @@ class environment(MultiAgentEnv):
         reward = {}
         done = {}
         extra = {}
-        for name, weapon in Constants.AGENT_INFO.items():
-            try:
-                temp_obs, temp_reward, temp_done,temp_extra = self.bots[weapon].step(action[self.bots[weapon].name])
-                self.obs[name] = temp_obs
-                reward[name] = temp_reward
-                done[name] = temp_done
-                extra[name] = temp_extra
-                self.episode_return[name] += reward[name]
-                pass
-            except Exception as e:
-                print(e)
-                pass
+        for name, actions in action.items():
+            print()
+            print(Constants.AGENT_INFO[name])
+            print(self.bots[Constants.AGENT_INFO[name]].step)
+            temp_obs, temp_reward, temp_done,temp_extra = self.bots[Constants.AGENT_INFO[name]].step(actions)
+            self.obs[name] = temp_obs
+            reward[name] = temp_reward
+            done[name] = temp_done
+            extra[name] = temp_extra
+            self.episode_return[name] += reward[name]
         #Terrible way to do this when have time fix to go through action list and not bots
         finished = len(done) == Constants.NUM_AGENTS or len(done) == 0
         for i in done:
@@ -216,7 +208,7 @@ class environment(MultiAgentEnv):
         my_mission = MalmoPython.MissionSpec(xml, True)
 
         client_pool = MalmoPython.ClientPool()
-        for x in range(10000, 10000 + Constants.NUM_AGENTS+1):
+        for x in range(10000, 10000 + Constants.NUM_AGENTS):
             client_pool.add(MalmoPython.ClientInfo('127.0.0.1', x))
         experimentID = str(uuid.uuid4())
 
@@ -287,11 +279,19 @@ if __name__ == '__main__':
     {"multiagent": {
         "policies": {
             # the first tuple value is None -> uses default policy
-            "robot": (None, robot_obs_space, robot_act_space, {"gamma": 0.85}),
+            "sword": (None, robot_obs_space, robot_act_space, {"gamma": 0.85}),
+            "bow": (None, robot_obs_space, robot_act_space, {"gamma": 0.85}),
+            "axe": (None, robot_obs_space, robot_act_space, {"gamma": 0.85}),
+            "pickaxe": (None, robot_obs_space, robot_act_space, {"gamma": 0.85}),
         },
         "policy_mapping_fn":
             lambda agent_id:
-                "robot"  # Traffic lights are always controlled by this policy
+                "sword"
+                if agent_id.startswith("sword")
+                else "bow" if agent_id.startswith("bow")
+                else "axe" if agent_id.startswith("axe")
+                else "pickaxe"
+
     },
         'env_config': {},  # No environment parameters to configure
         'framework': 'torch',  # Use pyotrch instead of tensorflow

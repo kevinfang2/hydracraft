@@ -58,13 +58,13 @@ def create_mission(agent_info, trackw=Constants.TRACK_WIDTH, trackb=Constants.TR
                     <DrawingDecorator>''' + \
                         "<DrawCuboid x1='{}' x2='{}' y1='2' y2='2' z1='{}' z2='{}' type='air'/>".format(-Constants.obs_size, Constants.obs_size,
                                                                                           -Constants.obs_size, Constants.obs_size) + \
-                        "<DrawCuboid x1='{}' x2='{}' y1='1' y2='1' z1='{}' z2='{}' type='stone'/>".format(-Constants.obs_size, Constants.obs_size,
+                        "<DrawCuboid x1='{}' x2='{}' y1='1' y2='1' z1='{}' z2='{}' type='bedrock'/>".format(-Constants.obs_size, Constants.obs_size,
                                                                                             -Constants.obs_size,
                                                                                             Constants.obs_size) + \
-                        "<DrawCuboid x1='" + str(-Constants.obs_size - 1)+ "' x2='" +str(Constants.obs_size + 1) + "' y1='1' y2='4' z1='" +str(Constants.obs_size+1)+ "' z2='" +str(Constants.obs_size+1)+ "' type='stone'/>" +\
-                        "<DrawCuboid x1='" + str(-Constants.obs_size - 1) + "' x2='" + str(Constants.obs_size + 1) + "' y1='1' y2='4' z1='" + str(-Constants.obs_size - 1) + "' z2='" + str(-Constants.obs_size - 1) + "' type='stone'/>" + \
-                        "<DrawCuboid x1='" + str(-Constants.obs_size - 1) + "' x2='" + str(-Constants.obs_size - 1) + "' y1='1' y2='4' z1='" + str(-Constants.obs_size - 1) + "' z2='" + str(Constants.obs_size + 1) + "' type='stone'/>" + \
-                        "<DrawCuboid x1='" + str(Constants.obs_size + 1) + "' x2='" + str(Constants.obs_size + 1) + "' y1='1' y2='4' z1='" + str(-Constants.obs_size - 1) + "' z2='" + str(Constants.obs_size + 1) + "' type='stone'/>" + \
+                        "<DrawCuboid x1='" + str(-Constants.obs_size - 1)+ "' x2='" +str(Constants.obs_size + 1) + "' y1='1' y2='4' z1='" +str(Constants.obs_size+1)+ "' z2='" +str(Constants.obs_size+1)+ "' type='bedrock'/>" +\
+                        "<DrawCuboid x1='" + str(-Constants.obs_size - 1) + "' x2='" + str(Constants.obs_size + 1) + "' y1='1' y2='4' z1='" + str(-Constants.obs_size - 1) + "' z2='" + str(-Constants.obs_size - 1) + "' type='bedrock'/>" + \
+                        "<DrawCuboid x1='" + str(-Constants.obs_size - 1) + "' x2='" + str(-Constants.obs_size - 1) + "' y1='1' y2='4' z1='" + str(-Constants.obs_size - 1) + "' z2='" + str(Constants.obs_size + 1) + "' type='bedrock'/>" + \
+                        "<DrawCuboid x1='" + str(Constants.obs_size + 1) + "' x2='" + str(Constants.obs_size + 1) + "' y1='1' y2='4' z1='" + str(-Constants.obs_size - 1) + "' z2='" + str(Constants.obs_size + 1) + "' type='bedrock'/>" + \
                stones() +\
                         '''
                         <DrawBlock x='0'  y='2' z='0' type='air' />
@@ -101,12 +101,12 @@ def create_mission(agent_info, trackw=Constants.TRACK_WIDTH, trackb=Constants.TR
           <MissionQuitCommands/>          
           <ObservationFromGrid>
             <Grid name="floorAll">
-                <min x="-'''+str(int(Constants.obs_size/2) - 1)+'''" y="0" z="-'''+str(int(Constants.obs_size/2) - 1)+'''"/>
-                <max x="'''+str(int(Constants.obs_size/2) )+'''" y="1" z="'''+str(int(Constants.obs_size/2))+'''"/>
+                <min x="-'''+str(int(Constants.obs_size/2))+'''" y="0" z="-'''+str(int(Constants.obs_size/2))+'''"/>
+                <max x="'''+str(int(Constants.obs_size/2) )+'''" y="10" z="'''+str(int(Constants.obs_size/2))+'''"/>
             </Grid>
           </ObservationFromGrid>
           <ObservationFromNearbyEntities>
-            <Range name="entities" xrange="40" yrange="2" zrange="40"/>
+            <Range name="entities" xrange="40" yrange="11" zrange="40"/>
           </ObservationFromNearbyEntities>
           <ObservationFromRay/>
           <ObservationFromFullStats/>

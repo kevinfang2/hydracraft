@@ -240,24 +240,24 @@ class environment(MultiAgentEnv):
             returns (list): list of total return of each episode
         """
         box = np.ones(self.log_frequency) / self.log_frequency
-        robot1_scores = []
-        robot2_scores = []
-        robot3_scores = []
-        robot4_scores = []
+        sword_scores = []
+        bow_scores = []
+        axe_scores = []
+        pickaxe_scores = []
         for i in self.returns[1:]:
-            robot1_scores.append(i['robot1'])
-            robot2_scores.append(i['robot2'])
-            robot3_scores.append(i['robot3'])
-            robot4_scores.append(i['robot4'])
-        returns_smooth_agent_1 = np.convolve(robot1_scores, box, mode='same')
-        returns_smooth_agent_2 = np.convolve(robot2_scores, box, mode='same')
-        returns_smooth_agent_3 = np.convolve(robot3_scores, box, mode='same')
-        returns_smooth_agent_4 = np.convolve(robot4_scores, box, mode='same')
+            sword_scores.append(i['sword'])
+            bow_scores.append(i['bow'])
+            axe_scores.append(i['axe'])
+            pickaxe_scores.append(i['pickaxe'])
+        returns_smooth_sword = np.convolve(sword_scores, box, mode='same')
+        returns_smooth_bow = np.convolve(bow_scores, box, mode='same')
+        returns_smooth_axe = np.convolve(axe_scores, box, mode='same')
+        returns_smooth_pickaxe = np.convolve(pickaxe_scores, box, mode='same')
         plt.clf()
-        plt.plot(self.steps[1:], returns_smooth_agent_1, label='Agent 1')
-        plt.plot(self.steps[1:], returns_smooth_agent_2, label='Agent 2')
-        plt.plot(self.steps[1:], returns_smooth_agent_3, label='Agent 3')
-        plt.plot(self.steps[1:], returns_smooth_agent_4, label='Agent 4')
+        plt.plot(self.steps[1:], returns_smooth_sword, label='Sword')
+        plt.plot(self.steps[1:], returns_smooth_bow, label='Bow')
+        plt.plot(self.steps[1:], returns_smooth_axe, label='Axe')
+        plt.plot(self.steps[1:], returns_smooth_pickaxe, label='Pickaxe')
         plt.title('Fighter')
         plt.ylabel('Return')
         plt.xlabel('Steps')
@@ -266,7 +266,7 @@ class environment(MultiAgentEnv):
 
         with open('returns.txt', 'w') as f:
             for step, value in zip(self.steps[1:], self.returns[1:]):
-                f.write("{}\t{}\t{}\n".format(step, value['robot1'], value['robot2'], value['robot3'], value['robot4']))
+                f.write("{}\t{}\t{}\n".format(step, value['sword'], value['bow'], value['axe'], value['pickaxe']))
 
 
 if __name__ == '__main__':

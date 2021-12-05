@@ -79,7 +79,7 @@ def create_mission(agent_info, trackw=Constants.TRACK_WIDTH, trackb=Constants.TR
         missionXML += '''<AgentSection mode="Survival">
         <Name>''' + name + '''</Name>
         <AgentStart>
-          <Placement '''+ Positions[int(name[-1])-1]+'''/>
+          <Placement '''+ Positions[weapon]+'''/>
             <Inventory>
           '''
         if(weapon == 0):

@@ -21,9 +21,9 @@ class BasicBot():
         self.name = name
         self.obs_size = 11
         self.agent_host = agent_host
-        self.action_space = gym.spaces.Box(low=np.array([-1.0, -1.0, 0.0, 0.0]), high=np.array([1.0, 1.0, 1.0, 1.0]),
+        self.action_space = gym.spaces.Box(low=np.array([-1.0, -1.0, -1.0, 0.0, 0.0, 0.0]), high=np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0]),
                                            dtype=np.float32)
-        self.observation_space = Box(0, 99, shape=(2 * self.obs_size * self.obs_size,), dtype=np.float32)
+        self.observation_space = Box(0, 99, shape=(Constants.ARENA_HEIGHT * Constants.ARENA_SIZE * Constants.ARENA_SIZE,), dtype=np.float32)
         self.episode_step = 0
         self.obs = None
         self.episode_step = 0
@@ -98,6 +98,11 @@ class BasicBot():
                 '''
         self.agent_host.sendCommand('move ' + str(command[0]))
         self.agent_host.sendCommand('turn ' + str(command[1]))
+        self.agent_host.sendCommand('pitch ' + str(command[2]))
+        if command[3] >= .5:
+            self.agent_host.sendCommand('jump 1')
+        else:
+            self.agent_host.sendCommand('jump 0')
         time.sleep(0.5)
         self.episode_step += 1
 

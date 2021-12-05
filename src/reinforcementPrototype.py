@@ -41,6 +41,11 @@ import arena
 import basic
 import Constants
 
+import SwordBot
+import BowBot
+import CrossbowBot
+import TridentBot
+
 from gym.spaces import Discrete, Box
 import ray
 from ray.rllib.agents import ppo
@@ -65,7 +70,8 @@ class environment(MultiAgentEnv):
             3: 'attack 1'  # Destroy block
         }
 
-        self.action_space = gym.spaces.Box(low=np.array([-1.0, -1.0, 0.0]), high=np.array([1.0, 1.0, 1.0]),
+        self.action_space = gym.spaces.Box(low=np.array([-1.0, -1.0, -1.0, 0.0, 0.0, 0.0]),
+                                           high=np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0]),
                                            dtype=np.float32)
         self.observation_space = Box(0, 99, shape=(Constants.ARENA_HEIGHT * Constants.ARENA_SIZE * Constants.ARENA_SIZE,), dtype=np.float32)
 
@@ -80,12 +86,15 @@ class environment(MultiAgentEnv):
             print(self.agent_hosts[0].getUsage())
             exit(1)
         self.agent_hosts += [MalmoPython.AgentHost() for x in range(1, Constants.NUM_AGENTS)]
-        self.bots += [basic.BasicBot(self.agent_hosts[x], "robot"+str(x+1)) for x in range(len(self.agent_hosts))]
+        self.bots.append(SwordBot.SwordBot(self.agent_hosts[0], "sword"))
+        self.bots.append(BowBot.BowBot(self.agent_hosts[1], "bow"))
+        self.bots.append(CrossbowBot.CrossbowBot(self.agent_hosts[2], "crossbow"))
+        self.bots.append(TridentBot.TridentBot(self.agent_hosts[3], "trident"))
         self.obs = None
         self.episode_step = 0
         self.episode_return = {}
-        for i in range(Constants.NUM_AGENTS):
-            self.episode_return["robot"+str(i+1)] = 0
+        for name, weapon in Constants.AGENT_INFO.items():
+            self.episode_return[name] = 0
         self.returns = []
         self.steps = []
 
@@ -97,8 +106,8 @@ class environment(MultiAgentEnv):
         current_step = self.steps[-1] if len(self.steps) > 0 else 0
         self.steps.append(current_step + self.episode_step)
         self.episode_return = {}
-        for i in range(Constants.NUM_AGENTS):
-            self.episode_return["robot" + str(i + 1)] = 0
+        for name, weapon in Constants.AGENT_INFO.items():
+            self.episode_return[name] = 0
         self.episode_step = 0
 
         # Log
@@ -108,8 +117,8 @@ class environment(MultiAgentEnv):
 
         # Get Observation
         self.obs = {}
-        for i in range(len(self.bots)):
-            self.obs["robot" + str(i+1)] = self.bots[i].reset()
+        for name, weapon in Constants.AGENT_INFO.items():
+            self.obs[name] = self.bots[weapon].reset()
 
         return self.obs
 
@@ -119,14 +128,14 @@ class environment(MultiAgentEnv):
         reward = {}
         done = {}
         extra = {}
-        for i in range(len(self.bots)):
+        for name, weapon in Constants.AGENT_INFO.items():
             try:
-                temp_obs, temp_reward, temp_done,temp_extra = self.bots[i].step(action[self.bots[i].name])
-                self.obs["robot" + str(i + 1)] = temp_obs
-                reward["robot" + str(i + 1)] = temp_reward
-                done["robot" + str(i + 1)] = temp_done
-                extra["robot" + str(i + 1)] = temp_extra
-                self.episode_return["robot" + str(i + 1)] += reward["robot" + str(i + 1)]
+                temp_obs, temp_reward, temp_done,temp_extra = self.bots[weapon].step(action[self.bots[weapon].name])
+                self.obs[name] = temp_obs
+                reward[name] = temp_reward
+                done[name] = temp_done
+                extra[name] = temp_extra
+                self.episode_return[name] += reward[name]
                 pass
             except Exception as e:
                 print(e)
@@ -142,7 +151,7 @@ class environment(MultiAgentEnv):
 
     def safeStartMission(self, agent_host, my_mission, my_client_pool, my_mission_record, role, expId):
         used_attempts = 0
-        max_attempts = 5
+        max_attempts = 10
         print("Calling startMission for role", role)
         while True:
             try:
@@ -207,7 +216,7 @@ class environment(MultiAgentEnv):
         my_mission = MalmoPython.MissionSpec(xml, True)
 
         client_pool = MalmoPython.ClientPool()
-        for x in range(10000, 10000 + Constants.NUM_AGENTS + 1):
+        for x in range(10000, 10000 + Constants.NUM_AGENTS+1):
             client_pool.add(MalmoPython.ClientInfo('127.0.0.1', x))
         experimentID = str(uuid.uuid4())
 
@@ -241,14 +250,22 @@ class environment(MultiAgentEnv):
         box = np.ones(self.log_frequency) / self.log_frequency
         robot1_scores = []
         robot2_scores = []
+        robot3_scores = []
+        robot4_scores = []
         for i in self.returns[1:]:
             robot1_scores.append(i['robot1'])
             robot2_scores.append(i['robot2'])
+            robot3_scores.append(i['robot3'])
+            robot4_scores.append(i['robot4'])
         returns_smooth_agent_1 = np.convolve(robot1_scores, box, mode='same')
         returns_smooth_agent_2 = np.convolve(robot2_scores, box, mode='same')
+        returns_smooth_agent_3 = np.convolve(robot3_scores, box, mode='same')
+        returns_smooth_agent_4 = np.convolve(robot4_scores, box, mode='same')
         plt.clf()
         plt.plot(self.steps[1:], returns_smooth_agent_1, 'g-', label='Agent 1')
         plt.plot(self.steps[1:], returns_smooth_agent_2, 'b--', label='Agent 2')
+        plt.plot(self.steps[1:], returns_smooth_agent_3, label='Agent 3')
+        plt.plot(self.steps[1:], returns_smooth_agent_4, label='Agent 4')
         plt.title('Fighter')
         plt.ylabel('Return')
         plt.xlabel('Steps')
@@ -257,11 +274,12 @@ class environment(MultiAgentEnv):
 
         with open('returns.txt', 'w') as f:
             for step, value in zip(self.steps[1:], self.returns[1:]):
-                f.write("{}\t{}\t{}\n".format(step, value['robot1'], value['robot2']))
+                f.write("{}\t{}\t{}\n".format(step, value['robot1'], value['robot2'], value['robot3'], value['robot4']))
 
 
 if __name__ == '__main__':
-    robot_act_space = gym.spaces.Box(low=np.array([-1.0, -1.0, 0.0, 0.0]), high=np.array([1.0, 1.0, 1.0, 1.0]),
+    robot_act_space = gym.spaces.Box(low=np.array([-1.0, -1.0, -1.0, 0.0, 0.0, 0.0]),
+                                       high=np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0]),
                                        dtype=np.float32)
     robot_obs_space = Box(0, 99, shape=(Constants.ARENA_HEIGHT * Constants.ARENA_SIZE * Constants.ARENA_SIZE,), dtype=np.float32)
     ray.init()

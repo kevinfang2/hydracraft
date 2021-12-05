@@ -25,3 +25,4 @@ class BowBot(basic.BasicBot):
             self.arrows_shot += 1
         else:
             self.agent_host.sendCommand('use 0')
+        return super().step(command)

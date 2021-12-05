@@ -43,8 +43,8 @@ import Constants
 
 import SwordBot
 import BowBot
-import CrossbowBot
-import TridentBot
+import AxeBot
+import PickaxeBot
 
 from gym.spaces import Discrete, Box
 import ray
@@ -88,8 +88,8 @@ class environment(MultiAgentEnv):
         self.agent_hosts += [MalmoPython.AgentHost() for x in range(1, Constants.NUM_AGENTS)]
         self.bots.append(SwordBot.SwordBot(self.agent_hosts[0], "sword"))
         self.bots.append(BowBot.BowBot(self.agent_hosts[1], "bow"))
-        self.bots.append(CrossbowBot.CrossbowBot(self.agent_hosts[2], "crossbow"))
-        self.bots.append(TridentBot.TridentBot(self.agent_hosts[3], "trident"))
+        self.bots.append(AxeBot.AxeBot(self.agent_hosts[2], "axe"))
+        self.bots.append(PickaxeBot.PickaxeBot(self.agent_hosts[3], "pickaxe"))
         self.obs = None
         self.episode_step = 0
         self.episode_return = {}
@@ -262,8 +262,8 @@ class environment(MultiAgentEnv):
         returns_smooth_agent_3 = np.convolve(robot3_scores, box, mode='same')
         returns_smooth_agent_4 = np.convolve(robot4_scores, box, mode='same')
         plt.clf()
-        plt.plot(self.steps[1:], returns_smooth_agent_1, 'g-', label='Agent 1')
-        plt.plot(self.steps[1:], returns_smooth_agent_2, 'b--', label='Agent 2')
+        plt.plot(self.steps[1:], returns_smooth_agent_1, label='Agent 1')
+        plt.plot(self.steps[1:], returns_smooth_agent_2, label='Agent 2')
         plt.plot(self.steps[1:], returns_smooth_agent_3, label='Agent 3')
         plt.plot(self.steps[1:], returns_smooth_agent_4, label='Agent 4')
         plt.title('Fighter')

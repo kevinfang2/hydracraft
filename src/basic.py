@@ -30,7 +30,7 @@ class BasicBot():
         self.episode_return = 0
         self.returns = []
         self.steps = []
-        self.last_life = 20
+        self.dealt = 0
         return
 
 
@@ -120,12 +120,8 @@ class BasicBot():
         reward = 0
         for r in world_state.rewards:
             reward += r.getValue()
-        for i in ob['entities']:
-            if i['name'] == 'robot1' and self.name == 'robot2' or i['name'] == 'robot2' and self.name == 'robot1':
-                reward = (self.last_life-i['life'])/2 *0.1
-                if reward < 0:
-                    reward = 0
-        self.last_life = ob['entities'][1]['life']
+        reward += ob['DamageDealt'] - self.dealt
+        self.dealt = ob['DamageDealt']
         self.episode_return += reward
         print(self.episode_return)
         return self.obs, reward, done, dict()

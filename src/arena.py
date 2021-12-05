@@ -88,10 +88,9 @@ def create_mission(agent_info, trackw=Constants.TRACK_WIDTH, trackb=Constants.TR
             missionXML += '''<InventoryObject slot="0" type="bow" quantity="1"/>
                 <InventoryObject slot="1" type="arrow" quantity="64"/>'''
         elif(weapon == 2):
-            missionXML += '''<InventoryObject slot="0" type="trident" quantity="1"/>'''
+            missionXML += '''<InventoryObject slot="0" type="wooden_axe" quantity="1"/>'''
         elif(weapon == 3):
-            missionXML += '''<InventoryObject slot="0" type="crossbow" quantity="1"/>
-                <InventoryObject slot="1" type="arrow" quantity="64"/>'''
+            missionXML += '''<InventoryObject slot="0" type="wooden_pickaxe" quantity="1"/>'''
         
         missionXML += '''
           </Inventory>

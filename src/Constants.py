@@ -12,8 +12,8 @@ BUILDING = 0
 AGENT_INFO = {
     'sword': 0,
     'bow': 1,
-    'crossbow' : 2,
-    'trident' : 3
+    'axe' : 2,
+    'pickaxe' : 3
 }
 
 NUM_AGENTS = len(AGENT_INFO)

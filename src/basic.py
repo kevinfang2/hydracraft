@@ -20,7 +20,7 @@ class BasicBot():
     def __init__(self, agent_host, name):
         self.name = name
         self.agent_host = agent_host
-        self.action_space = gym.spaces.Box(low=np.array([-1.0, -1.0, -1.0, 0.0, 0.0, 0.0]), high=np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0]),
+        self.action_space = gym.spaces.Box(low=np.array([-1.0, -1.0, 0.0, 0.0, 0.0]), high=np.array([1.0, 1.0, 1.0, 1.0, 1.0]),
                                            dtype=np.float32)
         self.observation_space = Box(0, 99, shape=(Constants.ARENA_HEIGHT * Constants.ARENA_SIZE * Constants.ARENA_SIZE,), dtype=np.float32)
         self.episode_step = 0
@@ -76,12 +76,12 @@ class BasicBot():
                     if x['name'] != self.name:
                         cords = (int(x['y'])-1, xpos + int(x['x'])-1, zpos +int(x['z'])-1)
                         if max(cords) < Constants.ARENA_SIZE and min(cords) >= 0:
-                            print()
-                            print(int(x['y']))
-                            print(xpos + int(x['x'])-1)
-                            print(zpos +int(x['z'])-1)
                             obs[int(x['y'])-1, xpos + int(x['x'])-1, zpos +int(x['z'])-1] = 99
-                yaw = observations['Yaw']
+                try:
+                    yaw = observations['Yaw']
+                except:
+                    print('wtf')
+                    pass
                 if yaw >= 225 and yaw < 315:
                     obs = np.rot90(obs, k=1, axes=(1, 2))
                 elif yaw >= 315 or yaw < 45:
@@ -103,8 +103,7 @@ class BasicBot():
                 '''
         self.agent_host.sendCommand('move ' + str(command[0]))
         self.agent_host.sendCommand('turn ' + str(command[1]))
-        self.agent_host.sendCommand('pitch ' + str(command[2]))
-        if command[3] >= .5:
+        if command[2] >= .5:
             self.agent_host.sendCommand('jump 1')
         else:
             self.agent_host.sendCommand('jump 0')
@@ -143,7 +142,7 @@ class BasicBot():
         self.episode_return = 0
         self.agent_host.sendCommand('chat /enchant ' + self.name + ' unbreaking 3')
         self.agent_host.sendCommand('chat /gamerule doNaturalRegen false')
-        self.agent_host.sendCommand('chat /effect ' + self.name + ' 17 4 255')
+        #self.agent_host.sendCommand('chat /effect ' + self.name + ' 17 4 255')
 
         # Get Observation
         self.obs = self.get_observation(world_state)

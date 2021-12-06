@@ -15,11 +15,11 @@ class BowBot(basic.BasicBot):
         return self.obs
 
     def step(self, command):
-        if command[4] >= .5:
-                self.agent_host.sendCommand('attack 1')
+        if command[3] >= .5:
+            self.agent_host.sendCommand('attack 1')
         else:
-                self.agent_host.sendCommand('attack 0')
-        if command[5] >= .5:
+            self.agent_host.sendCommand('attack 0')
+        if command[4] >= .5:
             self.agent_host.sendCommand('use 1')
             time.sleep(1.1)
             self.arrows_shot += 1

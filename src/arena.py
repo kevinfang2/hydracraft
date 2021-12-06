@@ -110,7 +110,7 @@ def create_mission(agent_info, trackw=Constants.TRACK_WIDTH, trackb=Constants.TR
           </ObservationFromNearbyEntities>
           <ObservationFromRay/>
           <ObservationFromFullStats/>
-          <RewardForMissionEnd rewardForDeath="-1">
+          <RewardForMissionEnd rewardForDeath="-100">
                 <Reward description="Quota" reward="0"/>
           </RewardForMissionEnd>
           <AgentQuitFromReachingCommandQuota description= "Quota" total="''' + str(Constants.MAX_COMMANDS * 3) + '''" />

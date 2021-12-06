@@ -64,8 +64,8 @@ class environment(MultiAgentEnv):
         self.max_episode_steps = 100
         self.log_frequency = 10
 
-        self.action_space = gym.spaces.Box(low=np.array([-1.0, -1.0, -1.0, 0.0, 0.0, 0.0]),
-                                           high=np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0]),
+        self.action_space = gym.spaces.Box(low=np.array([-1.0, -1.0, 0.0, 0.0, 0.0]),
+                                           high=np.array([1.0, 1.0, 1.0, 1.0, 1.0]),
                                            dtype=np.float32)
         self.observation_space = Box(0, 99, shape=(Constants.ARENA_HEIGHT * Constants.ARENA_SIZE * Constants.ARENA_SIZE,), dtype=np.float32)
 
@@ -123,9 +123,6 @@ class environment(MultiAgentEnv):
         done = {}
         extra = {}
         for name, actions in action.items():
-            print()
-            print(Constants.AGENT_INFO[name])
-            print(self.bots[Constants.AGENT_INFO[name]].step)
             temp_obs, temp_reward, temp_done,temp_extra = self.bots[Constants.AGENT_INFO[name]].step(actions)
             self.obs[name] = temp_obs
             reward[name] = temp_reward
@@ -270,8 +267,8 @@ class environment(MultiAgentEnv):
 
 
 if __name__ == '__main__':
-    robot_act_space = gym.spaces.Box(low=np.array([-1.0, -1.0, -1.0, 0.0, 0.0, 0.0]),
-                                       high=np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0]),
+    robot_act_space = gym.spaces.Box(low=np.array([-1.0, -1.0, 0.0, 0.0, 0.0]),
+                                       high=np.array([1.0, 1.0, 1.0, 1.0, 1.0]),
                                        dtype=np.float32)
     robot_obs_space = Box(0, 99, shape=(Constants.ARENA_HEIGHT * Constants.ARENA_SIZE * Constants.ARENA_SIZE,), dtype=np.float32)
     ray.init()

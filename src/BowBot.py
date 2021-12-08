@@ -6,7 +6,7 @@ import time
 class BowBot(basic.BasicBot):
     def __init__(self, agent_host, name):
         super().__init__(agent_host, name)
-        self.arrows_shot = 0
+        self.holding = False
 
     def reset(self):
         self.obs = super().reset()
@@ -22,7 +22,9 @@ class BowBot(basic.BasicBot):
         if command[4] >= .5:
             self.agent_host.sendCommand('use 1')
             time.sleep(1.1)
-            self.arrows_shot += 1
+            self.holding = True
         else:
             self.agent_host.sendCommand('use 0')
+            if self.holding:
+                self.attacks += 1
         return super().step(command)

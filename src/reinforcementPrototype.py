@@ -87,6 +87,10 @@ class environment(MultiAgentEnv):
         self.obs = None
         self.episode_step = 0
         self.episode_return = {}
+        self.bot_jumps = {}
+        self.bot_distance = {}
+        self.bot_attacks = {}
+        self.bot_hits = {}
         for name, weapon in Constants.AGENT_INFO.items():
             self.episode_return[name] = 0
         self.returns = []
@@ -96,12 +100,17 @@ class environment(MultiAgentEnv):
         world_state = self.init_malmo()
 
         # Reset Variables
-        self.returns.append(self.episode_return)
+        self.returns.append([self.episode_return.copy(), self.bot_jumps.copy(), self.bot_distance.copy(), self.bot_attacks.copy(), self.bot_hits.copy()])
         current_step = self.steps[-1] if len(self.steps) > 0 else 0
         self.steps.append(current_step + self.episode_step)
         self.episode_return = {}
         for name, weapon in Constants.AGENT_INFO.items():
             self.episode_return[name] = 0
+            self.bot_jumps[name] = 0
+            self.bot_distance[name] = 0
+            self.bot_attacks[name] = 0
+            self.bot_hits[name] = 0
+
         self.episode_step = 0
 
         # Log
@@ -129,6 +138,10 @@ class environment(MultiAgentEnv):
             done[name] = temp_done
             extra[name] = temp_extra
             self.episode_return[name] += reward[name]
+            self.bot_jumps[name] = self.bots[Constants.AGENT_INFO[name]].jumps
+            self.bot_distance[name] = self.bots[Constants.AGENT_INFO[name]].distance
+            self.bot_attacks[name] = self.bots[Constants.AGENT_INFO[name]].attacks
+            self.bot_hits[name] = self.bots[Constants.AGENT_INFO[name]].hits
         #Terrible way to do this when have time fix to go through action list and not bots
         finished = len(done) == Constants.NUM_AGENTS or len(done) == 0
         for i in done:
@@ -242,10 +255,10 @@ class environment(MultiAgentEnv):
         axe_scores = []
         pickaxe_scores = []
         for i in self.returns[1:]:
-            sword_scores.append(i['sword'])
-            bow_scores.append(i['bow'])
-            axe_scores.append(i['axe'])
-            pickaxe_scores.append(i['pickaxe'])
+            sword_scores.append(i[0]['sword'])
+            bow_scores.append(i[0]['bow'])
+            axe_scores.append(i[0]['axe'])
+            pickaxe_scores.append(i[0]['pickaxe'])
         returns_smooth_sword = np.convolve(sword_scores, box, mode='same')
         returns_smooth_bow = np.convolve(bow_scores, box, mode='same')
         returns_smooth_axe = np.convolve(axe_scores, box, mode='same')
@@ -263,7 +276,7 @@ class environment(MultiAgentEnv):
 
         with open('returns.txt', 'w') as f:
             for step, value in zip(self.steps[1:], self.returns[1:]):
-                f.write("{}\t{}\t{}\n".format(step, value['sword'], value['bow'], value['axe'], value['pickaxe']))
+                f.write("{}\t{}\t{}\n".format(step, value[0], value[1], value[2], value[3], value[4]))
 
 
 if __name__ == '__main__':
@@ -296,5 +309,9 @@ if __name__ == '__main__':
         'num_workers': 0  # We aren't using parallelism
     })
 
+    i = 0
     while True:
         print(trainer.train())
+        if i % 100 == 0:
+            trainer.save()
+        i += 1

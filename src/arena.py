@@ -27,10 +27,16 @@ def getWeapon(agentName):
 def create_mission(agent_info, trackw=Constants.TRACK_WIDTH, trackb=Constants.TRACK_BREADTH, trackh=Constants.TRACK_HEIGHT, timelimit=Constants.TIMELIMIT):
     def stones():
         stone = ''
-        for i in range(50):
-            for j in range(50):
-                if random.randint(0,100)/100. < Constants.DENSITY:
-                    stone +="<DrawBlock x='%s'  y='2' z='%s' type='bedrock' />"%(i,j)
+        for i in range(Constants.ARENA_SIZE * 2):
+            for j in range(Constants.ARENA_SIZE * 2):
+                if abs(i) == 5 and j == 0 or abs(j) == 5 and i == 0:
+                    pass
+                else:
+                    if random.randint(0, 100) / 100. < Constants.DENSITY:
+                        stone += "<DrawBlock x='%s'  y='2' z='%s' type='stone' />" % (
+                            i - Constants.ARENA_SIZE, j - Constants.ARENA_SIZE)
+                        stone += "<DrawBlock x='%s'  y='3' z='%s' type='stone' />" % (
+                            i - Constants.ARENA_SIZE, j - Constants.ARENA_SIZE)
         return stone
 
     '''Creates the xml for a given encounter:
@@ -56,19 +62,17 @@ def create_mission(agent_info, trackw=Constants.TRACK_WIDTH, trackb=Constants.TR
                 <ServerHandlers>
                   <FlatWorldGenerator generatorString="3;7,2;1;"/>
                     <DrawingDecorator>''' + \
-                        "<DrawCuboid x1='{}' x2='{}' y1='2' y2='2' z1='{}' z2='{}' type='air'/>".format(-Constants.obs_size, Constants.obs_size,
-                                                                                          -Constants.obs_size, Constants.obs_size) + \
-                        "<DrawCuboid x1='{}' x2='{}' y1='1' y2='1' z1='{}' z2='{}' type='bedrock'/>".format(-Constants.obs_size, Constants.obs_size,
-                                                                                            -Constants.obs_size,
-                                                                                            Constants.obs_size) + \
-                        "<DrawCuboid x1='" + str(-Constants.obs_size - 1)+ "' x2='" +str(Constants.obs_size + 1) + "' y1='1' y2='4' z1='" +str(Constants.obs_size+1)+ "' z2='" +str(Constants.obs_size+1)+ "' type='bedrock'/>" +\
-                        "<DrawCuboid x1='" + str(-Constants.obs_size - 1) + "' x2='" + str(Constants.obs_size + 1) + "' y1='1' y2='4' z1='" + str(-Constants.obs_size - 1) + "' z2='" + str(-Constants.obs_size - 1) + "' type='bedrock'/>" + \
-                        "<DrawCuboid x1='" + str(-Constants.obs_size - 1) + "' x2='" + str(-Constants.obs_size - 1) + "' y1='1' y2='4' z1='" + str(-Constants.obs_size - 1) + "' z2='" + str(Constants.obs_size + 1) + "' type='bedrock'/>" + \
-                        "<DrawCuboid x1='" + str(Constants.obs_size + 1) + "' x2='" + str(Constants.obs_size + 1) + "' y1='1' y2='4' z1='" + str(-Constants.obs_size - 1) + "' z2='" + str(Constants.obs_size + 1) + "' type='bedrock'/>" + \
+                        "<DrawCuboid x1='{}' x2='{}' y1='2' y2='3' z1='{}' z2='{}' type='air'/>".format(-Constants.ARENA_SIZE, Constants.ARENA_SIZE,
+                                                                                          -Constants.ARENA_SIZE, Constants.ARENA_SIZE) + \
+                        "<DrawCuboid x1='{}' x2='{}' y1='1' y2='1' z1='{}' z2='{}' type='bedrock'/>".format(-Constants.ARENA_SIZE, Constants.ARENA_SIZE,
+                                                                                            -Constants.ARENA_SIZE,
+                                                                                            Constants.ARENA_SIZE) + \
+                        "<DrawCuboid x1='" + str(-Constants.ARENA_SIZE - 1)+ "' x2='" +str(Constants.ARENA_SIZE + 1) + "' y1='1' y2='4' z1='" +str(Constants.ARENA_SIZE+1)+ "' z2='" +str(Constants.ARENA_SIZE+1)+ "' type='bedrock'/>" +\
+                        "<DrawCuboid x1='" + str(-Constants.ARENA_SIZE - 1) + "' x2='" + str(Constants.ARENA_SIZE + 1) + "' y1='1' y2='4' z1='" + str(-Constants.ARENA_SIZE - 1) + "' z2='" + str(-Constants.ARENA_SIZE - 1) + "' type='bedrock'/>" + \
+                        "<DrawCuboid x1='" + str(-Constants.ARENA_SIZE - 1) + "' x2='" + str(-Constants.ARENA_SIZE - 1) + "' y1='1' y2='4' z1='" + str(-Constants.ARENA_SIZE - 1) + "' z2='" + str(Constants.ARENA_SIZE + 1) + "' type='bedrock'/>" + \
+                        "<DrawCuboid x1='" + str(Constants.ARENA_SIZE + 1) + "' x2='" + str(Constants.ARENA_SIZE + 1) + "' y1='1' y2='4' z1='" + str(-Constants.ARENA_SIZE - 1) + "' z2='" + str(Constants.ARENA_SIZE + 1) + "' type='bedrock'/>" + \
                stones() +\
-                        '''
-                        <DrawBlock x='0'  y='2' z='0' type='air' />
-                        <DrawBlock x='0'  y='1' z='0' type='stone' />
+                                '''
                     </DrawingDecorator>
                     <ServerQuitWhenAnyAgentFinishes description="server sees murder happen"/>
                 </ServerHandlers>
@@ -101,8 +105,8 @@ def create_mission(agent_info, trackw=Constants.TRACK_WIDTH, trackb=Constants.TR
           <MissionQuitCommands/>          
           <ObservationFromGrid>
             <Grid name="floorAll">
-                <min x="-'''+str(int(Constants.obs_size/2))+'''" y="0" z="-'''+str(int(Constants.obs_size/2))+'''"/>
-                <max x="'''+str(int(Constants.obs_size/2) )+'''" y="10" z="'''+str(int(Constants.obs_size/2))+'''"/>
+                <min x="-'''+str(int(Constants.ARENA_SIZE/2))+'''" y="0" z="-'''+str(int(Constants.ARENA_SIZE/2))+'''"/>
+                <max x="'''+str(int(Constants.ARENA_SIZE/2) )+'''" y="10" z="'''+str(int(Constants.ARENA_SIZE/2))+'''"/>
             </Grid>
           </ObservationFromGrid>
           <ObservationFromNearbyEntities>

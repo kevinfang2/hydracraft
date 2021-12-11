@@ -1,15 +1,8 @@
 import math
 import random
+import Constants
 
-TRACK_WIDTH = 30
-TRACK_BREADTH = 30
-TRACK_HEIGHT = 30
-TIMELIMIT = 25000
-MAX_COMMANDS = 100
-WEAPON_MAPPING = {}
-WEAPONS = {}
-DENSITY = 0
-obs_size = 11
+
 Positions = ["x='5' y='2' z='0'",
              "x='-5' y='2' z='0'",
              "x='0' y='2' z='5'",
@@ -24,18 +17,26 @@ def getWeapon(agentName):
     weapons:
         - 0 for sword
         - 1 for bow arrow
+        - 2 for trident
+        - 3 for crossbow arrow
     '''
-    if agentName not in WEAPON_MAPPING.keys():
+    if agentName not in Constants.WEAPON_MAPPING.keys():
         return agentName
-    return WEAPON_MAPPING[agentName]
+    return Constants.WEAPON_MAPPING[agentName]
 
-def create_mission(agent_info, trackw=TRACK_WIDTH, trackb=TRACK_BREADTH, trackh=TRACK_HEIGHT, timelimit=TIMELIMIT):
+def create_mission(agent_info, trackw=Constants.TRACK_WIDTH, trackb=Constants.TRACK_BREADTH, trackh=Constants.TRACK_HEIGHT, timelimit=Constants.TIMELIMIT):
     def stones():
         stone = ''
-        for i in range(50):
-            for j in range(50):
-                if random.randint(0,100)/100. < DENSITY:
-                    stone +="<DrawBlock x='%s'  y='2' z='%s' type='bedrock' />"%(i,j)
+        for i in range(Constants.ARENA_SIZE * 2):
+            for j in range(Constants.ARENA_SIZE * 2):
+                if abs(i) == 5 and j == 0 or abs(j) == 5 and i == 0:
+                    pass
+                else:
+                    if random.randint(0, 100) / 100. < Constants.DENSITY:
+                        stone += "<DrawBlock x='%s'  y='2' z='%s' type='stone' />" % (
+                            i - Constants.ARENA_SIZE, j - Constants.ARENA_SIZE)
+                        stone += "<DrawBlock x='%s'  y='3' z='%s' type='stone' />" % (
+                            i - Constants.ARENA_SIZE, j - Constants.ARENA_SIZE)
         return stone
 
     '''Creates the xml for a given encounter:
@@ -61,19 +62,17 @@ def create_mission(agent_info, trackw=TRACK_WIDTH, trackb=TRACK_BREADTH, trackh=
                 <ServerHandlers>
                   <FlatWorldGenerator generatorString="3;7,2;1;"/>
                     <DrawingDecorator>''' + \
-                        "<DrawCuboid x1='{}' x2='{}' y1='2' y2='2' z1='{}' z2='{}' type='air'/>".format(-obs_size, obs_size,
-                                                                                          -obs_size, obs_size) + \
-                        "<DrawCuboid x1='{}' x2='{}' y1='1' y2='1' z1='{}' z2='{}' type='stone'/>".format(-obs_size, obs_size,
-                                                                                            -obs_size,
-                                                                                            obs_size) + \
-                        "<DrawCuboid x1='" + str(-obs_size - 1)+ "' x2='" +str(obs_size + 1) + "' y1='1' y2='4' z1='" +str(obs_size+1)+ "' z2='" +str(obs_size+1)+ "' type='stone'/>" +\
-                        "<DrawCuboid x1='" + str(-obs_size - 1) + "' x2='" + str(obs_size + 1) + "' y1='1' y2='4' z1='" + str(-obs_size - 1) + "' z2='" + str(-obs_size - 1) + "' type='stone'/>" + \
-                        "<DrawCuboid x1='" + str(-obs_size - 1) + "' x2='" + str(-obs_size - 1) + "' y1='1' y2='4' z1='" + str(-obs_size - 1) + "' z2='" + str(obs_size + 1) + "' type='stone'/>" + \
-                        "<DrawCuboid x1='" + str(obs_size + 1) + "' x2='" + str(obs_size + 1) + "' y1='1' y2='4' z1='" + str(-obs_size - 1) + "' z2='" + str(obs_size + 1) + "' type='stone'/>" + \
+                        "<DrawCuboid x1='{}' x2='{}' y1='2' y2='3' z1='{}' z2='{}' type='air'/>".format(-Constants.ARENA_SIZE, Constants.ARENA_SIZE,
+                                                                                          -Constants.ARENA_SIZE, Constants.ARENA_SIZE) + \
+                        "<DrawCuboid x1='{}' x2='{}' y1='1' y2='1' z1='{}' z2='{}' type='bedrock'/>".format(-Constants.ARENA_SIZE, Constants.ARENA_SIZE,
+                                                                                            -Constants.ARENA_SIZE,
+                                                                                            Constants.ARENA_SIZE) + \
+                        "<DrawCuboid x1='" + str(-Constants.ARENA_SIZE - 1)+ "' x2='" +str(Constants.ARENA_SIZE + 1) + "' y1='1' y2='4' z1='" +str(Constants.ARENA_SIZE+1)+ "' z2='" +str(Constants.ARENA_SIZE+1)+ "' type='bedrock'/>" +\
+                        "<DrawCuboid x1='" + str(-Constants.ARENA_SIZE - 1) + "' x2='" + str(Constants.ARENA_SIZE + 1) + "' y1='1' y2='4' z1='" + str(-Constants.ARENA_SIZE - 1) + "' z2='" + str(-Constants.ARENA_SIZE - 1) + "' type='bedrock'/>" + \
+                        "<DrawCuboid x1='" + str(-Constants.ARENA_SIZE - 1) + "' x2='" + str(-Constants.ARENA_SIZE - 1) + "' y1='1' y2='4' z1='" + str(-Constants.ARENA_SIZE - 1) + "' z2='" + str(Constants.ARENA_SIZE + 1) + "' type='bedrock'/>" + \
+                        "<DrawCuboid x1='" + str(Constants.ARENA_SIZE + 1) + "' x2='" + str(Constants.ARENA_SIZE + 1) + "' y1='1' y2='4' z1='" + str(-Constants.ARENA_SIZE - 1) + "' z2='" + str(Constants.ARENA_SIZE + 1) + "' type='bedrock'/>" + \
                stones() +\
-                        '''
-                        <DrawBlock x='0'  y='2' z='0' type='air' />
-                        <DrawBlock x='0'  y='1' z='0' type='stone' />
+                                '''
                     </DrawingDecorator>
                     <ServerQuitWhenAnyAgentFinishes description="server sees murder happen"/>
                 </ServerHandlers>
@@ -84,14 +83,18 @@ def create_mission(agent_info, trackw=TRACK_WIDTH, trackb=TRACK_BREADTH, trackh=
         missionXML += '''<AgentSection mode="Survival">
         <Name>''' + name + '''</Name>
         <AgentStart>
-          <Placement '''+ Positions[int(name[-1])-1]+'''/>
+          <Placement '''+ Positions[weapon]+'''/>
             <Inventory>
           '''
         if(weapon == 0):
             missionXML += '''<InventoryObject slot="0" type="wooden_sword" quantity="1"/>'''
-        else:
+        elif(weapon == 1):
             missionXML += '''<InventoryObject slot="0" type="bow" quantity="1"/>
                 <InventoryObject slot="1" type="arrow" quantity="64"/>'''
+        elif(weapon == 2):
+            missionXML += '''<InventoryObject slot="0" type="wooden_axe" quantity="1"/>'''
+        elif(weapon == 3):
+            missionXML += '''<InventoryObject slot="0" type="wooden_pickaxe" quantity="1"/>'''
         
         missionXML += '''
           </Inventory>
@@ -102,19 +105,19 @@ def create_mission(agent_info, trackw=TRACK_WIDTH, trackb=TRACK_BREADTH, trackh=
           <MissionQuitCommands/>          
           <ObservationFromGrid>
             <Grid name="floorAll">
-                <min x="-'''+str(int(obs_size/2) - 1)+'''" y="0" z="-'''+str(int(obs_size/2) - 1)+'''"/>
-                <max x="'''+str(int(obs_size/2) )+'''" y="1" z="'''+str(int(obs_size/2))+'''"/>
+                <min x="-'''+str(int(Constants.ARENA_SIZE/2))+'''" y="0" z="-'''+str(int(Constants.ARENA_SIZE/2))+'''"/>
+                <max x="'''+str(int(Constants.ARENA_SIZE/2) )+'''" y="10" z="'''+str(int(Constants.ARENA_SIZE/2))+'''"/>
             </Grid>
           </ObservationFromGrid>
           <ObservationFromNearbyEntities>
-            <Range name="entities" xrange="40" yrange="2" zrange="40"/>
+            <Range name="entities" xrange="40" yrange="11" zrange="40"/>
           </ObservationFromNearbyEntities>
           <ObservationFromRay/>
           <ObservationFromFullStats/>
-          <RewardForMissionEnd rewardForDeath="-1">
+          <RewardForMissionEnd rewardForDeath="-100">
                 <Reward description="Quota" reward="0"/>
           </RewardForMissionEnd>
-          <AgentQuitFromReachingCommandQuota description= "Quota" total="''' + str(MAX_COMMANDS * 3) + '''" />
+          <AgentQuitFromReachingCommandQuota description= "Quota" total="''' + str(Constants.MAX_COMMANDS * 3) + '''" />
         </AgentHandlers>
       </AgentSection>'''
     missionXML += '</Mission>'

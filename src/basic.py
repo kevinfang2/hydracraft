@@ -1,31 +1,18 @@
-import uuid
-from builtins import range
-from past.utils import old_div
+import math
+
+import Constants
 import json
 import sys
 import time
 from collections import namedtuple
-from operator import add
 import numpy as np
 import gym, ray
 from gym.spaces import Discrete, Box
-from ray.rllib.agents import ppo
-
-import arena
-import multiagent
 
 try:
     import MalmoPython
 except:
     import malmo.MalmoPython as MalmoPython
-
-# 0 is sword, 1 is bow
-AGENT_INFO = {
-    'robot1': 0,
-    'robot2': 1
-}
-NUM_AGENTS = len(AGENT_INFO)
-
 
 
 EntityInfo = namedtuple('EntityInfo', 'x, y, z, name')
@@ -34,18 +21,24 @@ class BasicBot():
     """BasicBot will be given an AgentHost in its run method and just track down & attack various enemies"""
     def __init__(self, agent_host, name):
         self.name = name
-        self.obs_size = 11
         self.agent_host = agent_host
-        self.action_space = gym.spaces.Box(low=np.array([-1.0, -1.0, 0.0]), high=np.array([1.0, 1.0, 1.0]),
+        self.action_space = gym.spaces.Box(low=np.array([-1.0, -1.0, 0.0, 0.0, 0.0]), high=np.array([1.0, 1.0, 1.0, 1.0, 1.0]),
                                            dtype=np.float32)
-        self.observation_space = Box(0, 99, shape=(2 * self.obs_size * self.obs_size,), dtype=np.float32)
+        self.observation_space = Box(0, 99, shape=(Constants.ARENA_HEIGHT * Constants.ARENA_SIZE * Constants.ARENA_SIZE,), dtype=np.float32)
         self.episode_step = 0
         self.obs = None
         self.episode_step = 0
         self.episode_return = 0
         self.returns = []
         self.steps = []
-        self.last_life = 20
+        self.dealt = 0
+        self.attacks = 0
+        self.hits = 0
+        self.jumps = 0
+        self.distance = 0
+        self.__x = 0
+        self.__z = 0
+        self.__just_started = True
         return
 
 
@@ -60,7 +53,7 @@ class BasicBot():
         Returns
             observation: <np.array> the state observation
         """
-        obs = np.zeros((2 * self.obs_size * self.obs_size, ))
+        obs = np.zeros((Constants.ARENA_HEIGHT * Constants.ARENA_SIZE * Constants.ARENA_SIZE, ))
 
         while world_state.is_mission_running:
             time.sleep(0.1)
@@ -79,68 +72,59 @@ class BasicBot():
                 for i, x in enumerate(grid):
                     if x == 'air':
                         obs[i] = 0
-                    if x == 'stone':
+                    if x == 'bedrock':
                         obs[i] = 1
+                    if x == 'stone':
+                        obs[i] = 2
                 # Rotate observation with orientation of agent
-                obs = obs.reshape((2, self.obs_size, self.obs_size))
-                xpos= self.obs_size //2
-                zpos= self.obs_size //2
+                obs = obs.reshape((Constants.ARENA_HEIGHT, Constants.ARENA_SIZE, Constants.ARENA_SIZE))
+                xpos= Constants.ARENA_SIZE //2
+                zpos= Constants.ARENA_SIZE //2
 
                 for i , x in enumerate(observations['entities']):
                     if x['name'] != self.name:
                         cords = (int(x['y'])-1, xpos + int(x['x'])-1, zpos +int(x['z'])-1)
-                        if max(cords) < self.obs_size and min(cords) >= 0:
+                        if max(cords) < Constants.ARENA_SIZE and min(cords) >= 0:
                             obs[int(x['y'])-1, xpos + int(x['x'])-1, zpos +int(x['z'])-1] = 99
-                yaw = observations['Yaw']
-                if yaw >= 225 and yaw < 315:
-                    obs = np.rot90(obs, k=1, axes=(1, 2))
-                elif yaw >= 315 or yaw < 45:
-                    obs = np.rot90(obs, k=2, axes=(1, 2))
-                elif yaw >= 45 and yaw < 135:
-                    obs = np.rot90(obs, k=3, axes=(1, 2))
+                try:
+                    yaw = observations['Yaw']
+                    if yaw >= 225 and yaw < 315:
+                        obs = np.rot90(obs, k=1, axes=(1, 2))
+                    elif yaw >= 315 or yaw < 45:
+                        obs = np.rot90(obs, k=2, axes=(1, 2))
+                    elif yaw >= 45 and yaw < 135:
+                        obs = np.rot90(obs, k=3, axes=(1, 2))
+                except:
+                    print('wtf')
+                    pass
+
                 obs = obs.flatten()
 
                 break
 
         return obs
 
-
-    def calc_reward(self, healthDelta, damageDelta):
-        reward = 0
-        reward += damageDelta * 15
-        reward += healthDelta * 10
-        return -10 if reward == 0 else reward
-
-
     def step(self, command):
-        time.sleep(0.1)
-        world_state = self.agent_host.getWorldState()
-        if world_state.number_of_observations_since_last_state > 0:
-            msg = world_state.observations[-1].text
-            ob = json.loads(msg)
-            '''Obs has the following keys:
-            ['PlayersKilled', 'TotalTime', 'Life', 'ZPos', 'IsAlive',
-            'Name', 'entities', 'DamageTaken', 'Food', 'Yaw', 'TimeAlive',
-            'XPos', 'WorldTime', 'Air', 'DistanceTravelled', 'Score', 'YPos',
-            'Pitch', 'MobsKilled', 'XP']
-            '''
-            if command[2] >= .5:
-                if AGENT_INFO[self.name] == 1:
-                    self.agent_host.sendCommand('use 1')
-                    time.sleep(1.1)
-                else:
-                    self.agent_host.sendCommand('attack 1')
-            else:
-                if AGENT_INFO[self.name] == 1:
-                    self.agent_host.sendCommand('use 0')
-                else:
-                    self.agent_host.sendCommand('attack 0')
+        '''Obs has the following keys:
+                ['PlayersKilled', 'TotalTime', 'Life', 'ZPos', 'IsAlive',
+                'Name', 'entities', 'DamageTaken', 'Food', 'Yaw', 'TimeAlive',
+                'XPos', 'WorldTime', 'Air', 'DistanceTravelled', 'Score', 'YPos',
+                'Pitch', 'MobsKilled', 'XP']
+                '''
+        try:
             self.agent_host.sendCommand('move ' + str(command[0]))
             self.agent_host.sendCommand('turn ' + str(command[1]))
+            if command[2] >= .5:
+                self.agent_host.sendCommand('jump 1')
+                self.jumps += 1
+            else:
+                self.agent_host.sendCommand('jump 0')
             time.sleep(0.5)
             self.episode_step += 1
 
             world_state = self.agent_host.getWorldState()
+            msg = world_state.observations[-1].text
+            ob = json.loads(msg)
             for error in world_state.errors:
                 print("Error:", error.text)
             self.obs = self.get_observation(world_state)
@@ -149,37 +133,28 @@ class BasicBot():
             done = not world_state.is_mission_running
 
             # Get Reward
+            if self.__just_started == True:
+                self.__just_started = False
+                self.__x = ob['XPos']
+                self.__z = ob['ZPos']
+                self.dealt = ob['DamageDealt']
+
+            else:
+                self.distance += math.sqrt((self.__x - ob['XPos'])**2 + (self.__z - ob['ZPos'])**2)
+                self.__x = ob['XPos']
+                self.__z = ob['ZPos']
             reward = 0
             for r in world_state.rewards:
                 reward += r.getValue()
-            for i in ob['entities']:
-                if i['name'] == 'robot1' and self.name == 'robot2' or i['name'] == 'robot2' and self.name == 'robot1':
-                    reward = (self.last_life-i['life'])/2 *0.1
-                    if reward < 0:
-                        reward = 0
-            self.last_life = ob['entities'][1]['life']
+            reward += ob['DamageDealt'] - self.dealt
+            if reward > 0:
+                self.hits += 1
+            self.dealt = ob['DamageDealt']
             self.episode_return += reward
             print(self.episode_return)
             return self.obs, reward, done, dict()
-            # 0 is air, 1 is obstacle, 99 is enemy
-
-
-            # if target == None: # No enemies nearby
-            #     if target != None:
-            #         sys.stdout.write("Not found: "+target['name'] + "\n")
-            #     self.agent_host.sendCommand("move 0") # stop moving
-            #     self.agent_host.sendCommand("attack 0") # stop attacking
-            #     self.agent_host.sendCommand("turn 0") # stop turning
-            #     self.agent_host.sendCommand("pitch 0") # stop looking up/down
-            # else:# enemy nearby, kill kill kill
-            #     deltaYaw = 5
-            #     deltaPitch = 5
-            #     self.agent_host.sendCommand("turn " + str(deltaYaw))
-            #     self.agent_host.sendCommand("pitch " + str(deltaPitch))
-            #     self.agent_host.sendCommand("attack 1")
-
-        for error in world_state.errors:
-            print("Error:", error.text)
+        except:
+            return [None, None, None, dict()]
 
     def reset(self):
         """
@@ -189,13 +164,14 @@ class BasicBot():
             observation: <np.array> flattened initial obseravtion
         """
         # Reset Malmo
+        self.hits = 0
+        self.jumps = 0
+        self.__just_started = True
         world_state = self.agent_host.getWorldState()
         self.episode_return = 0
         self.agent_host.sendCommand('chat /enchant ' + self.name + ' unbreaking 3')
-        if AGENT_INFO[self.name] == 1:
-            self.agent_host.sendCommand('chat /enchant '+self.name+' infinity 1')
-            self.agent_host.sendCommand('chat /gamerule doNaturalRegen false')
-
+        self.agent_host.sendCommand('chat /gamerule doNaturalRegen false')
+        #self.agent_host.sendCommand('chat /effect ' + self.name + ' 17 4 255')
 
         # Get Observation
         self.obs = self.get_observation(world_state)
@@ -203,53 +179,6 @@ class BasicBot():
 
         return self.obs
 
-    def run(self, agent_host):
-        """ Run the Agent on the world """
-        agent_host.sendCommand("move 0.25")
-        world_state = agent_host.getWorldState()
-        while world_state.is_mission_running:
-            #sys.stdout.write("*")
-            time.sleep(0.1)
-            world_state = agent_host.getWorldState()
-            if world_state.number_of_observations_since_last_state > 0:
-                msg = world_state.observations[-1].text
-                ob = json.loads(msg)
-                '''Obs has the following keys:
-                ['PlayersKilled', 'TotalTime', 'Life', 'ZPos', 'IsAlive',
-                'Name', 'entities', 'DamageTaken', 'Food', 'Yaw', 'TimeAlive',
-                'XPos', 'WorldTime', 'Air', 'DistanceTravelled', 'Score', 'YPos',
-                'Pitch', 'MobsKilled', 'XP']
-                '''
-                # print(ob.keys())
-
-                xPos = ob['XPos']
-                yPos = ob['YPos']
-                zPos = ob['ZPos']
-                yaw = ob['Yaw']
-                pitch = ob['Pitch']
-                target = self.getNextTarget(ob['entities'])
-
-                if target == None: # No enemies nearby
-                    if target != None:
-                        sys.stdout.write("Not found: "+target['name'] + "\n")
-                    agent_host.sendCommand("move 0") # stop moving
-                    agent_host.sendCommand("attack 0") # stop attacking
-                    agent_host.sendCommand("turn 0") # stop turning
-                    agent_host.sendCommand("pitch 0") # stop looking up/down
-                else:# enemy nearby, kill kill kill
-                    deltaYaw = 5
-                    deltaPitch = 5
-                    agent_host.sendCommand("turn " + str(deltaYaw))
-                    agent_host.sendCommand("pitch " + str(deltaPitch))
-                    agent_host.sendCommand("attack 1")
-
-            for error in world_state.errors:
-                print("Error:", error.text)
-
-    def getNextTarget(self, entities):
-        for entity in entities:
-            if entity['name'] != "MurderBot":
-                return entity
 
     '''
     To Be Done:

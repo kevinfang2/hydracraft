@@ -36,23 +36,20 @@ import time
 import uuid
 from collections import namedtuple
 import gym
+
 import arena
 import basic
+import Constants
+
+import SwordBot
+import BowBot
+import AxeBot
+import PickaxeBot
 
 from gym.spaces import Discrete, Box
 import ray
 from ray.rllib.agents import ppo
 from ray.rllib.env.multi_agent_env import MultiAgentEnv
-
-# 0 is sword, 1 is bow
-AGENT_INFO = {
-    'robot1': 0,
-    'robot2': 1
-}
-NUM_AGENTS = len(AGENT_INFO)
-
-ARENA_SIZE = 11
-ARENA_HEIGHT = 2
 
 
 EntityInfo = namedtuple('EntityInfo', 'x, y, z, name')
@@ -60,22 +57,17 @@ class environment(MultiAgentEnv):
     def __init__(self, env_config):
         # Static Parameters
         self.bots = []
-        self.size = ARENA_SIZE
+        self.size = Constants.ARENA_SIZE
         self.reward_density = .1
         self.penalty_density = .02
         self.obs_size = 5
         self.max_episode_steps = 100
         self.log_frequency = 10
-        self.action_dict = {
-            0: 'move 1',  # Move one block forward
-            1: 'turn 1',  # Turn 90 degrees to the right
-            2: 'turn -1',  # Turn 90 degrees to the left
-            3: 'attack 1'  # Destroy block
-        }
 
-        self.action_space = gym.spaces.Box(low=np.array([-1.0, -1.0, 0.0]), high=np.array([1.0, 1.0, 1.0]),
+        self.action_space = gym.spaces.Box(low=np.array([-1.0, -1.0, 0.0, 0.0, 0.0]),
+                                           high=np.array([1.0, 1.0, 1.0, 1.0, 1.0]),
                                            dtype=np.float32)
-        self.observation_space = Box(0, 99, shape=(ARENA_HEIGHT * ARENA_SIZE * ARENA_SIZE,), dtype=np.float32)
+        self.observation_space = Box(0, 99, shape=(Constants.ARENA_HEIGHT * Constants.ARENA_SIZE * Constants.ARENA_SIZE,), dtype=np.float32)
 
         # Rllib Parameters
 
@@ -87,13 +79,20 @@ class environment(MultiAgentEnv):
             print('ERROR:', e)
             print(self.agent_hosts[0].getUsage())
             exit(1)
-        self.agent_hosts += [MalmoPython.AgentHost() for x in range(1, NUM_AGENTS)]
-        self.bots += [basic.BasicBot(self.agent_hosts[x], "robot"+str(x+1)) for x in range(len(self.agent_hosts))]
+        self.agent_hosts += [MalmoPython.AgentHost() for x in range(1, Constants.NUM_AGENTS)]
+        self.bots.append(SwordBot.SwordBot(self.agent_hosts[0], "sword"))
+        self.bots.append(BowBot.BowBot(self.agent_hosts[1], "bow"))
+        self.bots.append(AxeBot.AxeBot(self.agent_hosts[2], "axe"))
+        self.bots.append(PickaxeBot.PickaxeBot(self.agent_hosts[3], "pickaxe"))
         self.obs = None
         self.episode_step = 0
         self.episode_return = {}
-        for i in range(NUM_AGENTS):
-            self.episode_return["robot"+str(i+1)] = 0
+        self.bot_jumps = {}
+        self.bot_distance = {}
+        self.bot_attacks = {}
+        self.bot_hits = {}
+        for name, weapon in Constants.AGENT_INFO.items():
+            self.episode_return[name] = 0
         self.returns = []
         self.steps = []
 
@@ -101,12 +100,17 @@ class environment(MultiAgentEnv):
         world_state = self.init_malmo()
 
         # Reset Variables
-        self.returns.append(self.episode_return)
+        self.returns.append([self.episode_return.copy(), self.bot_jumps.copy(), self.bot_distance.copy(), self.bot_attacks.copy(), self.bot_hits.copy()])
         current_step = self.steps[-1] if len(self.steps) > 0 else 0
         self.steps.append(current_step + self.episode_step)
         self.episode_return = {}
-        for i in range(NUM_AGENTS):
-            self.episode_return["robot" + str(i + 1)] = 0
+        for name, weapon in Constants.AGENT_INFO.items():
+            self.episode_return[name] = 0
+            self.bot_jumps[name] = 0
+            self.bot_distance[name] = 0
+            self.bot_attacks[name] = 0
+            self.bot_hits[name] = 0
+
         self.episode_step = 0
 
         # Log
@@ -116,8 +120,8 @@ class environment(MultiAgentEnv):
 
         # Get Observation
         self.obs = {}
-        for i in range(len(self.bots)):
-            self.obs["robot" + str(i+1)] = self.bots[i].reset()
+        for name, weapon in Constants.AGENT_INFO.items():
+            self.obs[name] = self.bots[weapon].reset()
 
         return self.obs
 
@@ -127,20 +131,20 @@ class environment(MultiAgentEnv):
         reward = {}
         done = {}
         extra = {}
-        for i in range(len(self.bots)):
-            try:
-                temp_obs, temp_reward, temp_done,temp_extra = self.bots[i].step(action[self.bots[i].name])
-                self.obs["robot" + str(i + 1)] = temp_obs
-                reward["robot" + str(i + 1)] = temp_reward
-                done["robot" + str(i + 1)] = temp_done
-                extra["robot" + str(i + 1)] = temp_extra
-                self.episode_return["robot" + str(i + 1)] += reward["robot" + str(i + 1)]
-                pass
-            except Exception as e:
-                print(e)
-                pass
+        for name, actions in action.items():
+            temp_obs, temp_reward, temp_done,temp_extra = self.bots[Constants.AGENT_INFO[name]].step(actions)
+            if temp_reward != None and temp_done != None:
+                self.obs[name] = temp_obs
+                reward[name] = temp_reward
+                done[name] = temp_done
+                extra[name] = temp_extra
+                self.episode_return[name] += reward[name]
+                self.bot_jumps[name] = self.bots[Constants.AGENT_INFO[name]].jumps
+                self.bot_distance[name] = self.bots[Constants.AGENT_INFO[name]].distance
+                self.bot_attacks[name] = self.bots[Constants.AGENT_INFO[name]].attacks
+                self.bot_hits[name] = self.bots[Constants.AGENT_INFO[name]].hits
         #Terrible way to do this when have time fix to go through action list and not bots
-        finished = len(done) == NUM_AGENTS or len(done) == 0
+        finished = len(done) == Constants.NUM_AGENTS or len(done) == 0
         for i in done:
             finished = finished and done[i]
         done["__all__"] = finished
@@ -150,7 +154,7 @@ class environment(MultiAgentEnv):
 
     def safeStartMission(self, agent_host, my_mission, my_client_pool, my_mission_record, role, expId):
         used_attempts = 0
-        max_attempts = 5
+        max_attempts = 10
         print("Calling startMission for role", role)
         while True:
             try:
@@ -211,11 +215,11 @@ class environment(MultiAgentEnv):
         # for mission_no in range(1, num_missions+1):
         # xml = getXML()
         # print(xml)
-        xml = arena.create_mission(AGENT_INFO)
+        xml = arena.create_mission(Constants.AGENT_INFO)
         my_mission = MalmoPython.MissionSpec(xml, True)
 
         client_pool = MalmoPython.ClientPool()
-        for x in range(10000, 10000 + NUM_AGENTS + 1):
+        for x in range(10000, 10000 + Constants.NUM_AGENTS):
             client_pool.add(MalmoPython.ClientInfo('127.0.0.1', x))
         experimentID = str(uuid.uuid4())
 
@@ -247,16 +251,24 @@ class environment(MultiAgentEnv):
             returns (list): list of total return of each episode
         """
         box = np.ones(self.log_frequency) / self.log_frequency
-        robot1_scores = []
-        robot2_scores = []
+        sword_scores = []
+        bow_scores = []
+        axe_scores = []
+        pickaxe_scores = []
         for i in self.returns[1:]:
-            robot1_scores.append(i['robot1'])
-            robot2_scores.append(i['robot2'])
-        returns_smooth_agent_1 = np.convolve(robot1_scores, box, mode='same')
-        returns_smooth_agent_2 = np.convolve(robot2_scores, box, mode='same')
+            sword_scores.append(i[0]['sword'])
+            bow_scores.append(i[0]['bow'])
+            axe_scores.append(i[0]['axe'])
+            pickaxe_scores.append(i[0]['pickaxe'])
+        returns_smooth_sword = np.convolve(sword_scores, box, mode='same')
+        returns_smooth_bow = np.convolve(bow_scores, box, mode='same')
+        returns_smooth_axe = np.convolve(axe_scores, box, mode='same')
+        returns_smooth_pickaxe = np.convolve(pickaxe_scores, box, mode='same')
         plt.clf()
-        plt.plot(self.steps[1:], returns_smooth_agent_1, 'g-', label='Agent 1')
-        plt.plot(self.steps[1:], returns_smooth_agent_2, 'b--', label='Agent 2')
+        plt.plot(self.steps[1:], returns_smooth_sword, label='Sword')
+        plt.plot(self.steps[1:], returns_smooth_bow, label='Bow')
+        plt.plot(self.steps[1:], returns_smooth_axe, label='Axe')
+        plt.plot(self.steps[1:], returns_smooth_pickaxe, label='Pickaxe')
         plt.title('Fighter')
         plt.ylabel('Return')
         plt.xlabel('Steps')
@@ -265,23 +277,32 @@ class environment(MultiAgentEnv):
 
         with open('returns.txt', 'w') as f:
             for step, value in zip(self.steps[1:], self.returns[1:]):
-                f.write("{}\t{}\t{}\n".format(step, value['robot1'], value['robot2']))
+                f.write("{}\t{}\t{}\n".format(step, value[0], value[1], value[2], value[3], value[4]))
 
 
 if __name__ == '__main__':
-    robot_act_space = gym.spaces.Box(low=np.array([-1.0, -1.0, 0.0]), high=np.array([1.0, 1.0, 1.0]),
+    robot_act_space = gym.spaces.Box(low=np.array([-1.0, -1.0, 0.0, 0.0, 0.0]),
+                                       high=np.array([1.0, 1.0, 1.0, 1.0, 1.0]),
                                        dtype=np.float32)
-    robot_obs_space = Box(0, 99, shape=(2 * ARENA_SIZE * ARENA_SIZE,), dtype=np.float32)
+    robot_obs_space = Box(0, 99, shape=(Constants.ARENA_HEIGHT * Constants.ARENA_SIZE * Constants.ARENA_SIZE,), dtype=np.float32)
     ray.init()
     trainer = ppo.PPOTrainer(env=environment, config=
     {"multiagent": {
         "policies": {
             # the first tuple value is None -> uses default policy
-            "robot": (None, robot_obs_space, robot_act_space, {"gamma": 0.85}),
+            "sword": (None, robot_obs_space, robot_act_space, {"gamma": 0.85}),
+            "bow": (None, robot_obs_space, robot_act_space, {"gamma": 0.85}),
+            "axe": (None, robot_obs_space, robot_act_space, {"gamma": 0.85}),
+            "pickaxe": (None, robot_obs_space, robot_act_space, {"gamma": 0.85}),
         },
         "policy_mapping_fn":
             lambda agent_id:
-                "robot"  # Traffic lights are always controlled by this policy
+                "sword"
+                if agent_id.startswith("sword")
+                else "bow" if agent_id.startswith("bow")
+                else "axe" if agent_id.startswith("axe")
+                else "pickaxe"
+
     },
         'env_config': {},  # No environment parameters to configure
         'framework': 'torch',  # Use pyotrch instead of tensorflow

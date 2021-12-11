@@ -133,15 +133,16 @@ class environment(MultiAgentEnv):
         extra = {}
         for name, actions in action.items():
             temp_obs, temp_reward, temp_done,temp_extra = self.bots[Constants.AGENT_INFO[name]].step(actions)
-            self.obs[name] = temp_obs
-            reward[name] = temp_reward
-            done[name] = temp_done
-            extra[name] = temp_extra
-            self.episode_return[name] += reward[name]
-            self.bot_jumps[name] = self.bots[Constants.AGENT_INFO[name]].jumps
-            self.bot_distance[name] = self.bots[Constants.AGENT_INFO[name]].distance
-            self.bot_attacks[name] = self.bots[Constants.AGENT_INFO[name]].attacks
-            self.bot_hits[name] = self.bots[Constants.AGENT_INFO[name]].hits
+            if temp_reward != None and temp_done != None:
+                self.obs[name] = temp_obs
+                reward[name] = temp_reward
+                done[name] = temp_done
+                extra[name] = temp_extra
+                self.episode_return[name] += reward[name]
+                self.bot_jumps[name] = self.bots[Constants.AGENT_INFO[name]].jumps
+                self.bot_distance[name] = self.bots[Constants.AGENT_INFO[name]].distance
+                self.bot_attacks[name] = self.bots[Constants.AGENT_INFO[name]].attacks
+                self.bot_hits[name] = self.bots[Constants.AGENT_INFO[name]].hits
         #Terrible way to do this when have time fix to go through action list and not bots
         finished = len(done) == Constants.NUM_AGENTS or len(done) == 0
         for i in done:
@@ -309,9 +310,5 @@ if __name__ == '__main__':
         'num_workers': 0  # We aren't using parallelism
     })
 
-    i = 0
     while True:
         print(trainer.train())
-        if i % 100 == 0:
-            trainer.save()
-        i += 1

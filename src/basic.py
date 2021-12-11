@@ -154,7 +154,7 @@ class BasicBot():
             print(self.episode_return)
             return self.obs, reward, done, dict()
         except:
-            return
+            return [None, None, None, dict()]
 
     def reset(self):
         """

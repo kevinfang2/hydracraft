@@ -5,7 +5,7 @@
     <Description>Defeat Enemy to Continue!</Description>
   </About>
   <ModSettings>
-    <MsPerTick>50</MsPerTick>
+    <MsPerTick>20</MsPerTick>
   </ModSettings>
   <ServerSection>
     <ServerInitialConditions>
@@ -18,8 +18,8 @@
     <ServerHandlers>
       <FlatWorldGenerator generatorString="3;7,2;1;" />
       <DrawingDecorator>
-        <DrawCuboid x1='-50' x2='50' y1='2' y2='2' z1='-50' z2='50' type='air' />
-        <DrawCuboid x1='-50' x2='50' y1='1' y2='1' z1='-50' z2='50' type='stone' />
+        <DrawCuboid x1='-20' x2='20' y1='2' y2='2' z1='-20' z2='20' type='air' />
+        <DrawCuboid x1='-20' x2='20' y1='1' y2='1' z1='-20' z2='20' type='stone' />
         <DrawBlock x='-18' y='2' z='-11' type='bedrock' />
         <DrawBlock x='-18' y='2' z='-9' type='bedrock' />
         <DrawBlock x='-18' y='2' z='-6' type='bedrock' />
@@ -315,18 +315,23 @@
         <DrawEntity x="-17" y="2" z="-8" type="Zombie" />
         <DrawEntity x="-15" y="2" z="-8" type="Zombie" />
         <DrawEntity x="13" y="2" z="-8" type="Zombie" />
+        <DrawEntity x="13" y="2" z="-8" type="Zombie" />
+        <DrawEntity x="13" y="2" z="-8" type="Zombie" />
+        <DrawEntity x="13" y="2" z="-8" type="Zombie" />
+        <DrawEntity x="13" y="2" z="-8" type="Zombie" />
+        <DrawEntity x="13" y="2" z="-8" type="Zombie" />
+        <DrawEntity x="13" y="2" z="-8" type="Zombie" />
 
         <DrawBlock x='0' y='2' z='0' type='air' />
         <DrawBlock x='0' y='1' z='0' type='stone' />
       </DrawingDecorator>
-      <ServerQuitWhenAnyAgentFinishes description="server sees murder happen" />
-      <ServerQuitFromTimeUp timeLimitMs="20000" />
+
     </ServerHandlers>
   </ServerSection>
   <AgentSection mode="Survival">
     <Name>Agent_1</Name>
     <AgentStart>
-      <Placement x="-4" y="2" z="8" />
+      <Placement x="-4.5" y="2.5" z="8.5" />
       <Inventory>
         <InventoryItem slot="0" type="wooden_sword" />
       </Inventory>
@@ -336,23 +341,23 @@
         <Width>512</Width>
         <Height>512</Height>
       </VideoProducer>
-      <DiscreteMovementCommands>
-        <ModifierList type="deny-list">
-          <command>attack</command>
-        </ModifierList>
-      </DiscreteMovementCommands>
-      <ContinuousMovementCommands>
-        <ModifierList type="allow-list">
-          <command>attack</command>
-        </ModifierList>
-      </ContinuousMovementCommands>
-
+      <DiscreteMovementCommands/>
+      <ObservationFromNearbyEntities>
+        <Range name="entities" xrange="50" yrange="10" zrange="50"/>
+      </ObservationFromNearbyEntities>
+  
       <ObservationFromFullStats />
       <MissionQuitCommands />
-      <RewardForTimeTaken initialReward="500" delta="-5" density="MISSION_END" />
       <RewardForDamagingEntity>
-        <Mob type="Zombie" reward="100" />
+        <Mob type="Zombie" reward="1000" />
       </RewardForDamagingEntity>
-    </AgentHandlers>
+      <AgentQuitFromTimeUp
+        timeLimitMs="180000"/>
+      <RewardForTimeTaken initialReward="0" delta="0.1" density="PER_TICK" />
+      <RewardForMissionEnd>
+        <Reward description="out_of_time" reward="-100.0"/>
+        <Reward description="out_of_arena" reward="-100.0"/>
+      </RewardForMissionEnd>
+  </AgentHandlers>
   </AgentSection>
 </Mission>

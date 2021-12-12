@@ -85,6 +85,11 @@ def train_agent(agent, env, steps, outdir, max_episode_len=None,
                 logger.info('outdir:%s step:%s episode:%s R:%s',
                             outdir, t, episode_idx, episode_r)
                 logger.info('statistics:%s', agent.get_statistics())
+
+
+                f = open('rewards.txt', 'a+')
+                f.write("reward: " + str(episode_r) + "\n")
+
                 if evaluator is not None and num_resets > evaluator.n_runs:
                     evaluated, score = evaluator.evaluate_if_necessary(
                         t=t, episodes=episode_idx + 1)

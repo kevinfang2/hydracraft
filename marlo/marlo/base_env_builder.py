@@ -10,6 +10,7 @@ import marlo.commands
 import uuid
 import hashlib
 import base64
+import os
 
 import xml.etree.ElementTree as ElementTree
 
@@ -268,7 +269,7 @@ class MarloEnvBuilderBase(gym.Env):
                  gameMode="survival",
                  forceWorldReset=True,
                  turn_based=False,
-                 comp_all_commands=['move', "turn", "use", "attack", "look"],  # Override to specify the full set of allowed competition commands.
+                 comp_all_commands=['move', "turn", "use", "strafe", "attack"],  # Override to specify the full set of allowed competition commands.
                  suppress_info=True,
                  kill_clients_after_num_rounds=250,
                  kill_clients_retry=0
@@ -393,16 +394,17 @@ class MarloEnvBuilderBase(gym.Env):
         discrete_actions = []
         multidiscrete_actions = []
         multidiscrete_action_ranges = []
-        if params.add_noop_command:
-            discrete_actions.append("move 0\nturn 0")
+        # if params.add_noop_command:
 
         mission_xml = str(self.mission_spec)
         i = mission_xml.index("<Mission")
         mission_xml = mission_xml[i:]
-        # print(mission_xml)
         parser = marlo.commands.CommandParser(params.comp_all_commands)
         commands = parser.get_commands(mission_xml, params.role)
-        commands.append(('DiscreteMovement', False, "attack"))
+
+        # commands.append(('DiscreteMovement', False, "attack"))
+
+        # equip thing?
 
         # print(commands)
         for (command_handler, turnbased, command) in commands:
@@ -716,6 +718,12 @@ class MarloEnvBuilderBase(gym.Env):
             if self.params.experiment_id:
                 self.experiment_id = self.params.experiment_id
 
+            path = './mission_records/{}'.format(self.experiment_id)
+            print(path)
+            if not os.path.exists(path):
+                print(path)
+                os.makedirs(path)
+
             try:
                 if not self.client_pool:
                     raise Exception("client_pool not specified.")
@@ -747,7 +755,10 @@ class MarloEnvBuilderBase(gym.Env):
 
                 # Notify Evaluation System, if applicable
                 marlo.CrowdAiNotifier._env_reset()
-                
+
+                print("equipped")
+                self.agent_host.sendCommand("hotbar.1 1")
+                                
                 return frame
 
             except Exception as e:
@@ -846,10 +857,15 @@ class MarloEnvBuilderBase(gym.Env):
             self._take_action(action)
 
         world_state = self._get_world_state()
+        entities = []
+
 
         # Update turn state
         if world_state.number_of_observations_since_last_state > 0:
             data = json.loads(world_state.observations[-1].text)
+            
+            entities = data['entities']
+
             turn_key = data.get(u'turn_key', None)
             if turn_key is not None and turn_key != self._turn.key:
                 self._turn.update(turn_key)
@@ -875,10 +891,30 @@ class MarloEnvBuilderBase(gym.Env):
         image = self._get_video_frame(world_state)
 
         # detect if done ?
+
         done = not world_state.is_mission_running or any(world_state.errors)
 
+        num_zombies = 10
+        zomb_count = 0
+
+        # if they kill a zombie, quit and add reward, zombie + agent = 11
+        for e in entities:
+            if e['name'] == 'Agent_1':
+                # dead agent
+                if e['life'] == 0:
+                    reward -= 1000
+                    done = True
+            elif e['name'] == 'Zombie':
+                zomb_count += 1
+                if e['life'] == 0:
+                    reward += 2000
+                    done = True
+
         # gather info
+
         info = {}
+        # print("world_state.is_mission_running %s"%world_state.is_mission_running)
+        # print("any(world_state.errors) %s"%any(world_state.errors))
         info['has_mission_begun'] = world_state.has_mission_begun
         info['is_mission_running'] = world_state.is_mission_running
         info['number_of_video_frames_since_last_state'] = world_state.number_of_video_frames_since_last_state # noqa: E501
@@ -886,18 +922,21 @@ class MarloEnvBuilderBase(gym.Env):
         info['number_of_observations_since_last_state'] = world_state.number_of_observations_since_last_state # noqa: E501
         info['mission_control_messages'] = [msg.text for msg in world_state.mission_control_messages] # noqa: E501
         info['observation'] = self._get_observation(world_state)
+        info['entities'] = entities
 
-        if self.params.suppress_info:
-            """
-            Clear info variable to not leak in game variables
-            """
-            info = {}
+        # if self.params.suppress_info:
+            # """
+            # Clear info variable to not leak in game variables
+            # """
+            # info = {}
 
         # Notify evaluation system, if applicable
         # marlo.CrowdAiNotifier._env_action(action)
         marlo.CrowdAiNotifier._step_reward(reward)
         if done:
             marlo.CrowdAiNotifier._episode_done()
+            #while not world_state.is_mission_running:    
+                #self.reset()
 
         return image, reward, done, info
 

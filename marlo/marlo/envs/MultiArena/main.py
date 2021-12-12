@@ -28,6 +28,7 @@ class MarloEnvBuilder(MarloEnvBuilderBase):
 
     def _default_params(self):
         _default_params = super(MarloEnvBuilder, self).default_base_params
+        print("default params is ", _default_params)
         return _default_params
 
 

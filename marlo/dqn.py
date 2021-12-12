@@ -28,9 +28,9 @@ start_epsilon = 1.0
 end_epsilon = 0.1
 final_exploration_steps = 10 ** 4
 outdir = 'results'
-gpu = -1
+gpu = 0
 gamma = 0.99
-replay_start_size = 1000
+replay_start_size = 100
 target_update_interval = 10 ** 2
 update_interval = 1
 target_update_method = 'hard'
@@ -47,7 +47,7 @@ def phi(obs):
 #join_tokens = marlo.make('MarLo-CliffWalking-v0',
 join_tokens = marlo.make('MarLo-FightArena-v0', 
                 params=dict(
-                    allowContinuousMovement=["move", "turn"],
+                    #allowContinuousMovement=["move", "turn"],
                     videoResolution=[800, 600],
                     recordDestination="test.tgz",
                     recordRewards=True,
@@ -61,6 +61,8 @@ env.render(mode="rgb_array")
 
 action = env.action_space.sample()
 obs, r, done, info = env.step(action)
+
+
 #print('next observation:', obs)
 print('reward:', r)
 print('done:', done)

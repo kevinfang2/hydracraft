@@ -7,9 +7,9 @@ Source code: [https://github.com/kevinfang2/hydracraft](https://kevinfang2.githu
 
 Reports:
 
-- [Proposal](proposal.html)
-- [Status](status.html)
-- [Final](final.html)
+- [Proposal](proposal.md)
+- [Status](status.md)
+- [Final](final.md)
 
 ![alt text](https://raw.githubusercontent.com/kevinfang2/hydracraft/main/docs/screen.png "Screenshot of minecraft")
 

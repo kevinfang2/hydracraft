@@ -339,7 +339,7 @@
 		</ServerHandlers>
 	</ServerSection>
 	<AgentSection mode="Survival">
-		<Name>Agent0</Name>
+		<Name>Agent_1</Name>
 		<AgentStart>
 			<Placement pitch="30" x="6.5" y="4" yaw="0" z="8.5" />
 			<Inventory>
@@ -352,6 +352,11 @@
 					<command>attack</command>
 				</ModifierList>
 			</DiscreteMovementCommands>
+			<ContinuousMovementCommands>
+				<ModifierList type="allow-list">
+					<command>attack</command>
+				</ModifierList>
+			</ContinuousMovementCommands>
 			<ObservationFromNearbyEntities>
 				<Range name="entities" xrange="25" yrange="2" zrange="25" />
 			</ObservationFromNearbyEntities>
@@ -362,9 +367,8 @@
 				</Grid>
 			</ObservationFromGrid>
 			<ObservationFromFullStats />
-			<RewardForSendingCommand reward="-0.02" />
 			<RewardForDamagingEntity>
-				<Mob type="Zombie" reward="1000" />
+				<Mob type="Zombie" reward="100" />
 			</RewardForDamagingEntity>
 			<VideoProducer want_depth="false">
 				<Width>640</Width>

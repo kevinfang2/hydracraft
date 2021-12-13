@@ -402,7 +402,7 @@ class MarloEnvBuilderBase(gym.Env):
         parser = marlo.commands.CommandParser(params.comp_all_commands)
         commands = parser.get_commands(mission_xml, params.role)
 
-        # commands.append(('DiscreteMovement', False, "attack"))
+        commands.append(('ContinuousMovement', False, "attack"))
 
         # equip thing?
 
@@ -479,6 +479,7 @@ class MarloEnvBuilderBase(gym.Env):
                 gym.spaces.MultiDiscrete(multidiscrete_action_ranges)
                 )
             self.action_names.append(multidiscrete_actions)
+
 
         # No tuples in case a single action
         if len(self.action_spaces) == 1:
@@ -915,15 +916,17 @@ class MarloEnvBuilderBase(gym.Env):
                 a_z = e['z']
                 # agent_position = thing
                 if e['life'] == 0:
+                    print("dead")
                     reward -= 1000
                     done = True
         
-        dist = 10
+        dist = 6
         for e in entities:
             if e['name'] == 'Zombie':
                 if abs(e['x'] - a_x) < dist and abs(e['y']- a_y) < dist and abs(e['z'] - a_z) < dist:
-                    print("attacked")
-                    self.send_command("attack 1")
+                    # self.send_command("attack 1")
+                    self.agent_host.sendCommand("attack 1")
+                    # time.sleep(0.5)
                 zomb_count += 1
                 if e['life'] == 0:
                     reward += 2000

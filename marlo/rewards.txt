@@ -174,3 +174,12 @@ reward: -2.0000000000000013
 reward: 0
 reward: 0
 reward: 0
+reward: -1.8400000000000012
+reward: 0
+reward: 0
+reward: 0
+reward: 0
+reward: 0
+reward: 0
+reward: -900.0
+reward: -1000

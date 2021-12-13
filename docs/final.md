@@ -15,7 +15,7 @@ Creating a PVP/PVE bot is relatively easy. All you need is an algorithm that mov
 In this project, we employed two different approaches one where we trained agents against a horde of zombies and the other where we pitted 4 agents with varying weapons against each other.  
 
 The approach where agents were pitted against a horde of zombies used a DQN network trained using the MarLo and ChainerRL libraries. There was a single agent, trained with a randomized weapon, that would be pitted against a variable amount of zombies. The arena is a 20x20 with a fence surrounding it. The agent is able to move, turn, attack, use, and strafe.
-	A DQN algorithm uses a neural network to approximate the following Q function.
+A DQN algorithm uses a neural network to approximate the following Q function.
 
 Each episode is ran until either a zombie dies, or the agent dies. We define a reward function that is dependent on the damage the agent is able to deal, zombie death, and agent death. The immediate reward given to a frame for dealing damage is to help speed up the learning process.
 This approach on learning combat on a PvE scenario is interesting in that zombies already have inbuilt strategies that agents have to then play around. Unlike in the agent vs agent case where players may potentially learn to just run away from each other, zombies are programmed to run towards the agent without regard of their own life, which forces the agent to learn a different strategy.
@@ -31,7 +31,7 @@ Each weapon had its own class of agent to control weapon-specific details. There
 This has the theoretical advantage of producing more interesting results as agents have to account for each other. However, there were a plethora of problems that compounded to make this difficult. Firstly, Malmo the training environment is not built to support damaging other agents as they are not considered other entities in the documentation. Therefore, the only way to check for damage done to other agents was to look every step and see if the amount of damage an agent has dealt has increased. The second problem is that there is a constant natural health regeneration that could not be turned off as there was no option in the missionXML nor was the Minecraft gamerule command “doNaturalRegen false” effective in disabling this regeneration. The final problem was due to the massive computer resources needed to run the programs. Very rarely when Malmo was setting up the environment some agents would become unresponsive and the mission would end due to not enough agents responding. This is why no agent was able to reach past 25000 steps.
 
 ## Evaluation
-	For the agent vs zombie model, we analyzed the average reward over time, as well as the average time survived in the episode.
+For the agent vs zombie model, we analyzed the average reward over time, as well as the average time survived in the episode.
 
 This graph shows the reward over the episodes averaged over its neighbors. There’s a clear upwards trajectory, and it’s quite clear that the agent has not fully learned its optimal policy yet, as the reward function has not tapered off and is still increasing. Running another 1000-2000 episodes is probably needed for model convergence.
 
@@ -53,7 +53,7 @@ For the agent vs agent model, there are a few quantitative and qualitative metri
 The first metric was the damage an agent deals to all the other agents with a 100 point deduction for dying (Results shown above). Every step we parsed the message to get the damage that the agent dealt since the last step. This was then returned as the reward for each step. The first death occurred at around step 24000. This makes us believe that had these agents not encountered technical difficulties there would have been more agent deaths.
 
 
-	The second quantitative metric is the accuracy of each agent where we looked at the number of hits compared to the number of attacks made by each agent.
+The second quantitative metric is the accuracy of each agent where we looked at the number of hits compared to the number of attacks made by each agent.
 	
 The third quantitative metric was the movement of the agents. Particularly the number of jumps and the total distance travelled.
 	The final metric we looked at was a qualitative metric where we looked at positioning and the utilization of the tools of each agent.

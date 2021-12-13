@@ -2,6 +2,7 @@
 layout: default
 title: Final Report
 ---
+## https://youtu.be/pGWn3Qk2nfc
 
 # Final Report
 
@@ -39,26 +40,24 @@ This graph shows the reward over the episodes averaged over its neighbors. There
 
 ![alt text](https://raw.githubusercontent.com/kevinfang2/hydracraft/main/docs/time.png)
 This graph shows the episode length-  either how long the agent survives for, or until the agent kills a zombie. As shown by the lack of positive reward in the prior example, it’s clear that the agent is not killing zombies often yet. However, paired with this graph, it’s starting to both learn how to survive and learn to do combat. Towards the tail end of the plot, it is clear that on average, the agent needs ~120 timesteps to both acquaint itself with its surroundings safely, and then slowly learn to kill the zombie.
+
 This is consistent with our previous assumption that the model has not yet converged. By the time we were able to stop our experiments, it’s clear that the agent starts to learn what the environment means, and what obstacles it needs to be cognizant of. The slow rise to a positive average reward then reinforces the idea that it has begun to learn a strategy to kill zombies.
 
-
-
-
-
-
-
-
-
-
 For the agent vs agent model, there are a few quantitative and qualitative metrics that we looked at to determine the success. The three quantitative measures that we looked at is the damage dealt with a penalty for death, accuracy, and movement. The qualitative metric was the positioning of the agents based upon their respective advantages. These metrics were compared over three trials each of which made it to around 20000 steps. Either due to the inability to train the agents for a long enough time or the inconsistent data returned from Malmo, there were very few differences between agents of different weapons. 
+![](Images/returnScores.png)
+The first metric was the damage an agent deals to all the other agents with a 100 point deduction for dying (Results shown above). Every step we parsed the message to get the damage that the agent dealt since the last step. This was then returned as the reward for each step.
 
-The first metric was the damage an agent deals to all the other agents with a 100 point deduction for dying (Results shown above). Every step we parsed the message to get the damage that the agent dealt since the last step. This was then returned as the reward for each step. The first death occurred at around step 24000. This makes us believe that had these agents not encountered technical difficulties there would have been more agent deaths.
+We did not get any agent deaths so we cannot conclude that agents have learned to fight. However, there is an interesting correlation between the scores of the sword and the axe agent. Whenever the score of the sword agent starts to increase the score of the axe agent decreases and vice versa.
+![](Images/returnAttacks.png)
+![](Images/returnHits.png)
+The second quantitative metric is the accuracy of each agent where we looked at the number of hits compared to the number of attacks made by each agent. Overall the amount of attacks remains relatively constant. The only reason an agent would not spam attacks is that Minecraft itself penalizes spamming attacks and due to the inconsistencies of damage reporting we believe that the agents did learn about that mechanic. However, similarly to the damage done there was a negative correlation between the sword and the axe.	
+![](Images/returnJump.png)
+![](Images/returnDist.png)
+The third quantitative metric was the movement of the agents. Particularly the number of jumps and the total distance travelled. Both of which remained relatively constant throughout the runs. Because of this, we do not believe that the agents learned to use the pieces of stone as cover because if they had there would have been a decrease in the number of jumps for at least a few hundred steps as jumping would have given other agents a chance to hit an agent using cover.
 
+Similarly, distance remains constant which we believe shows that an agent did not learn to pathfind to any particular agent as there would have been a reduction in total distance travelled. The reason for the archer’s lower distance travelled was due to the debug given to a user holding a bow at full draw and not it staying still.
 
-The second quantitative metric is the accuracy of each agent where we looked at the number of hits compared to the number of attacks made by each agent.
-	
-The third quantitative metric was the movement of the agents. Particularly the number of jumps and the total distance travelled.
-	The final metric we looked at was a qualitative metric where we looked at positioning and the utilization of the tools of each agent.
+Due to these results, we believe that the agents in an agent versus agent environment did not learn to effectively use their weapons. Whether this is due to the inconsistencies of Malmo or some other factor is unknown.
 	
 ## Resources Used
 https://github.com/petrosgk/MalmoRL

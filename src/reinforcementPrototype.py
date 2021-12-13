@@ -1,26 +1,6 @@
 from __future__ import print_function
 from __future__ import division
-# ------------------------------------------------------------------------------------------------
-# Copyright (c) 2016 Microsoft Corporation
-#
-# Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
-# associated documentation files (the "Software"), to deal in the Software without restriction,
-# including without limitation the rights to use, copy, modify, merge, publish, distribute,
-# sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in all copies or
-# substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
-# NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-# NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-# DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-# ------------------------------------------------------------------------------------------------
 
-# Test of multi-agent missions - runs a number of agents in a shared environment.
-import json
 from builtins import range
 
 import numpy as np
@@ -152,6 +132,8 @@ class environment(MultiAgentEnv):
             print("END", self.episode_return)
         return  self.obs, reward, done, extra
 
+
+    # This function was taken from Malmo's Multi Agent Test
     def safeStartMission(self, agent_host, my_mission, my_client_pool, my_mission_record, role, expId):
         used_attempts = 0
         max_attempts = 10
@@ -187,6 +169,7 @@ class environment(MultiAgentEnv):
                 exit(1)
         print("startMission called okay.")
 
+    # This function was taken from Malmo's Multi Agent Test
     def safeWaitForStart(self, agent_hosts):
         print("Waiting for the mission to start", end=' ')
         start_flags = [False for a in agent_hosts]

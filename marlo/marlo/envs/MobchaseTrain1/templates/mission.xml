@@ -16,7 +16,7 @@
 		<Summary> Catch the Zombie </Summary>
 	</About>
 	<ModSettings>
-		<MsPerTick>50</MsPerTick>
+		<MsPerTick>200</MsPerTick>
 	</ModSettings>
 	<ServerSection>
 		<ServerInitialConditions>
@@ -341,7 +341,7 @@
 	<AgentSection mode="Survival">
 		<Name>Agent_1</Name>
 		<AgentStart>
-			<Placement pitch="30" x="6.5" y="4" yaw="0" z="8.5" />
+			<Placement pitch="30" x="6.5" y="4" yaw="0" z="-3" />
 			<Inventory>
 				<InventoryBlock quantity="1" slot="0" type="wooden_sword" />
 			</Inventory>
@@ -357,6 +357,7 @@
 					<command>attack</command>
 				</ModifierList>
 			</ContinuousMovementCommands>
+			<MissionQuitCommands />
 			<ObservationFromNearbyEntities>
 				<Range name="entities" xrange="25" yrange="2" zrange="25" />
 			</ObservationFromNearbyEntities>

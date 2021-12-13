@@ -402,7 +402,7 @@ class MarloEnvBuilderBase(gym.Env):
         parser = marlo.commands.CommandParser(params.comp_all_commands)
         commands = parser.get_commands(mission_xml, params.role)
 
-        commands.append(('ContinuousMovement', False, "attack"))
+        # commands.append(('ContinuousMovement', False, "attack"))
 
         # equip thing?
 

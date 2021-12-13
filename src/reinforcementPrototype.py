@@ -1,28 +1,3 @@
-from __future__ import print_function
-from __future__ import division
-# ------------------------------------------------------------------------------------------------
-# Copyright (c) 2016 Microsoft Corporation
-#
-# Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
-# associated documentation files (the "Software"), to deal in the Software without restriction,
-# including without limitation the rights to use, copy, modify, merge, publish, distribute,
-# sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in all copies or
-# substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
-# NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-# NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-# DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-# ------------------------------------------------------------------------------------------------
-
-# Test of multi-agent missions - runs a number of agents in a shared environment.
-import json
-from builtins import range
-
 import numpy as np
 from matplotlib import pyplot as plt
 
@@ -62,7 +37,7 @@ class environment(MultiAgentEnv):
         self.penalty_density = .02
         self.obs_size = 5
         self.max_episode_steps = 100
-        self.log_frequency = 10
+        self.log_frequency = 1
 
         self.action_space = gym.spaces.Box(low=np.array([-1.0, -1.0, 0.0, 0.0, 0.0]),
                                            high=np.array([1.0, 1.0, 1.0, 1.0, 1.0]),
@@ -277,7 +252,7 @@ class environment(MultiAgentEnv):
 
         with open('returns.txt', 'w') as f:
             for step, value in zip(self.steps[1:], self.returns[1:]):
-                f.write("{}\t{}\t{}\n".format(step, value[0], value[1], value[2], value[3], value[4]))
+                f.write("{}\t{}\t{}\t{}\t{}\t{}\n".format(step, value[0], value[1], value[2], value[3], value[4]))
 
 
 if __name__ == '__main__':

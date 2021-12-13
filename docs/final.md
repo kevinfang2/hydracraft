@@ -16,7 +16,7 @@ In this project, we employed two different approaches one where we trained agent
 
 The approach where agents were pitted against a horde of zombies used a DQN network trained using the MarLo and ChainerRL libraries. There was a single agent, trained with a randomized weapon, that would be pitted against a variable amount of zombies. The arena is a 20x20 with a fence surrounding it. The agent is able to move, turn, attack, use, and strafe.
 A DQN algorithm uses a neural network to approximate the following Q function.
-![alt text](https://github.com/kevinfang2/hydracraft/blob/main/docs/dqn.png =x250)
+![alt text](https://raw.githubusercontent.com/kevinfang2/hydracraft/main/docs/dqn.png =x250)
 Each episode is ran until either a zombie dies, or the agent dies. We define a reward function that is dependent on the damage the agent is able to deal, zombie death, and agent death. The immediate reward given to a frame for dealing damage is to help speed up the learning process.
 This approach on learning combat on a PvE scenario is interesting in that zombies already have inbuilt strategies that agents have to then play around. Unlike in the agent vs agent case where players may potentially learn to just run away from each other, zombies are programmed to run towards the agent without regard of their own life, which forces the agent to learn a different strategy.
 Due to the limitation of student-budget capable compute power, we were able to train the agent enough to survive longer and hit zombies, but it was unable to converge to an optimal solution as we did not have enough time on GPU’s to train for convergence. Malmo bugs and the occasion breakage of MarLo’s model saving code did slow down our ability to train and easily study learned agent strategies. DQN is also an inherently unstable model, and without permanent access to good compute, we were unable to spend the necessary amount of time to hyperparameter tune.
@@ -24,7 +24,7 @@ Due to the limitation of student-budget capable compute power, we were able to t
 
 The approach where agents were pitted against each other used a proximal policy optimization algorithm from ray’s rllib library to train and control the agents.  The PPO algorithm uses trust regions, which is dependent on the KL Divergence given by the old and new policy. Formally,
 
-![alt text](https://github.com/kevinfang2/hydracraft/blob/main/docs/ppo.png)
+![alt text](https://raw.githubusercontent.com/kevinfang2/hydracraft/main/docs/ppo.png)
 
 This algorithm voids having to establish correct step sizes that policy gradient algorithms such as DQN struggle with. This makes PPO easier to train.
 The PPO had a dedicated policy for each agent.  The agents sent an observation space of 11 x 11 x 11 cube with the agent centred on the bottom layer, air as 0s, bedrock as 1s, stone as 2s, and other agents as 99. The trainer sent back a list of 5 integers representing: move, turn, attack, use, and jump. 
@@ -34,10 +34,10 @@ This has the theoretical advantage of producing more interesting results as agen
 
 ## Evaluation
 For the agent vs zombie model, we analyzed the average reward over time, as well as the average time survived in the episode.
-![alt text](https://github.com/kevinfang2/hydracraft/blob/main/docs/rewards.png)
+![alt text](https://raw.githubusercontent.com/kevinfang2/hydracraft/main/docs/rewards.png)
 This graph shows the reward over the episodes averaged over its neighbors. There’s a clear upwards trajectory, and it’s quite clear that the agent has not fully learned its optimal policy yet, as the reward function has not tapered off and is still increasing. Running another 1000-2000 episodes is probably needed for model convergence.
 
-![alt text](https://github.com/kevinfang2/hydracraft/blob/main/docs/time.png)
+![alt text](https://raw.githubusercontent.com/kevinfang2/hydracraft/main/docs/time.png)
 This graph shows the episode length-  either how long the agent survives for, or until the agent kills a zombie. As shown by the lack of positive reward in the prior example, it’s clear that the agent is not killing zombies often yet. However, paired with this graph, it’s starting to both learn how to survive and learn to do combat. Towards the tail end of the plot, it is clear that on average, the agent needs ~120 timesteps to both acquaint itself with its surroundings safely, and then slowly learn to kill the zombie.
 This is consistent with our previous assumption that the model has not yet converged. By the time we were able to stop our experiments, it’s clear that the agent starts to learn what the environment means, and what obstacles it needs to be cognizant of. The slow rise to a positive average reward then reinforces the idea that it has begun to learn a strategy to kill zombies.
 

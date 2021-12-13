@@ -64,4 +64,5 @@ https://github.com/petrosgk/MalmoRL
 https://github.com/crowdAI/marLo 
 https://github.com/keras-rl/keras-rl
 https://github.com/microsoft/malmo
+https://docs.ray.io/en/latest/index.html
 

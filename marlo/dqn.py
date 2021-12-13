@@ -26,9 +26,10 @@ n_hidden_channels = 100
 n_hidden_layers = 2
 start_epsilon = 1.0
 end_epsilon = 0.1
-final_exploration_steps = 10 ** 4
+final_exploration_steps = 10 ** 3
 outdir = 'results'
-gpu = 0
+# gpu = 0
+gpu = -1
 gamma = 0.99
 replay_start_size = 100
 target_update_interval = 10 ** 2
@@ -45,13 +46,13 @@ def phi(obs):
 
 # Ensure that you have a minecraft-client running with : marlo-server --port 10000
 #join_tokens = marlo.make('MarLo-CliffWalking-v0',
-join_tokens = marlo.make('MarLo-FightArena-v0', 
+join_tokens = marlo.make('MarLo-MobchaseTrain1-v0', 
                 params=dict(
                     #allowContinuousMovement=["move", "turn"],
-                    videoResolution=[800, 600],
+                    videoResolution=[900, 600],
                     recordDestination="test.tgz",
                     recordRewards=True,
-                    recordMP4=[20,400000]
+                    recordMP4=[24,2000000]
                     ))
 env = marlo.init(join_tokens[0])
 

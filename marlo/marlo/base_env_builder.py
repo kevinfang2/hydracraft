@@ -751,6 +751,10 @@ class MarloEnvBuilderBase(gym.Env):
                         raise MalmoPython.MissionException("Giving up on mission starting up")
 
                 logger.info("Mission Running")
+                
+                print("equipped")
+                self.agent_host.sendCommand("hotbar.1 1")
+
                 frame = self._get_video_frame(world_state)
 
                 # Notify Evaluation System, if applicable
@@ -758,7 +762,7 @@ class MarloEnvBuilderBase(gym.Env):
 
                 print("equipped")
                 self.agent_host.sendCommand("hotbar.1 1")
-                                
+
                 return frame
 
             except Exception as e:
@@ -887,6 +891,7 @@ class MarloEnvBuilderBase(gym.Env):
         for _reward in world_state.rewards:
             reward += _reward.getValue()
 
+
         # Get observation
         image = self._get_video_frame(world_state)
 
@@ -898,18 +903,32 @@ class MarloEnvBuilderBase(gym.Env):
         zomb_count = 0
 
         # if they kill a zombie, quit and add reward, zombie + agent = 11
+        a_x = 0
+        a_y = 0
+        a_z = 0
+        
         for e in entities:
             if e['name'] == 'Agent_1':
                 # dead agent
+                a_x = e['x']
+                a_y = e['y']
+                a_z = e['z']
+                # agent_position = thing
                 if e['life'] == 0:
                     reward -= 1000
                     done = True
-            elif e['name'] == 'Zombie':
+        
+        dist = 10
+        for e in entities:
+            if e['name'] == 'Zombie':
+                if abs(e['x'] - a_x) < dist and abs(e['y']- a_y) < dist and abs(e['z'] - a_z) < dist:
+                    print("attacked")
+                    self.send_command("attack 1")
                 zomb_count += 1
                 if e['life'] == 0:
                     reward += 2000
                     done = True
-
+        print("action is ", self.action_names[0][action])
         # gather info
 
         info = {}

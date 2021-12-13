@@ -16,14 +16,16 @@ In this project, we employed two different approaches one where we trained agent
 
 The approach where agents were pitted against a horde of zombies used a DQN network trained using the MarLo and ChainerRL libraries. There was a single agent, trained with a randomized weapon, that would be pitted against a variable amount of zombies. The arena is a 20x20 with a fence surrounding it. The agent is able to move, turn, attack, use, and strafe.
 A DQN algorithm uses a neural network to approximate the following Q function.
-![alt text](https://github.com/kevinfang2/hydracraft/blob/main/docs/dqn.png)
+![alt text](https://github.com/kevinfang2/hydracraft/blob/main/docs/dqn.png =x250)
 Each episode is ran until either a zombie dies, or the agent dies. We define a reward function that is dependent on the damage the agent is able to deal, zombie death, and agent death. The immediate reward given to a frame for dealing damage is to help speed up the learning process.
 This approach on learning combat on a PvE scenario is interesting in that zombies already have inbuilt strategies that agents have to then play around. Unlike in the agent vs agent case where players may potentially learn to just run away from each other, zombies are programmed to run towards the agent without regard of their own life, which forces the agent to learn a different strategy.
 Due to the limitation of student-budget capable compute power, we were able to train the agent enough to survive longer and hit zombies, but it was unable to converge to an optimal solution as we did not have enough time on GPU’s to train for convergence. Malmo bugs and the occasion breakage of MarLo’s model saving code did slow down our ability to train and easily study learned agent strategies. DQN is also an inherently unstable model, and without permanent access to good compute, we were unable to spend the necessary amount of time to hyperparameter tune.
 
 
 The approach where agents were pitted against each other used a proximal policy optimization algorithm from ray’s rllib library to train and control the agents.  The PPO algorithm uses trust regions, which is dependent on the KL Divergence given by the old and new policy. Formally,
+
 ![alt text](https://github.com/kevinfang2/hydracraft/blob/main/docs/ppo.png)
+
 This algorithm voids having to establish correct step sizes that policy gradient algorithms such as DQN struggle with. This makes PPO easier to train.
 The PPO had a dedicated policy for each agent.  The agents sent an observation space of 11 x 11 x 11 cube with the agent centred on the bottom layer, air as 0s, bedrock as 1s, stone as 2s, and other agents as 99. The trainer sent back a list of 5 integers representing: move, turn, attack, use, and jump. 
 The arena was a 22 x 22 bedrock square enclosed with walls 3 heigh to stop agents from breaking their way out. The agents were spawned at 5 blocks away from the centre at coordinates (5, 2, 0), (-5, 2, 0), (0, 2, 5), (0, 2,-5) respectively. The arena was also randomly strewn with 2 high stone pillars that agents could use to block line of sight or to get a height advantage.
